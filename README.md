@@ -1,1 +1,0 @@
-# Ruslan.V.Smetanin.github.io
