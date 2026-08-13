@@ -1,282 +1,79 @@
-<!DOCTYPE HTML>
-<!--
-	Escape Velocity by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
--->
-<html>
-	<head>
-		<title>Ruslan V. Smetanin</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-		<link rel="stylesheet" href="assets/css/main.css" />
-	</head>
-	<body class="homepage is-preload">
-		<div id="page-wrapper">
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ruslan Smetanin — Scientific Workbench</title>
+  <meta name="description" content="Protocols, tools, scripts and reference notes for molecular biology and scientific computing.">
+  <meta property="og:title" content="Ruslan Smetanin — Scientific Workbench">
+  <meta property="og:description" content="Molecular biology · Bioinformatics · Scientific computing">
+  <meta property="og:image" content="https://heskad.github.io/Ruslan.V.Smetanin.github.io/assets/images/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="assets/js/3Dmol-min.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+<main>
+  <header class="site-header">
+    <a class="wordmark" href="#top" aria-label="Ruslan Smetanin home"><span>RS</span> RUSLAN SMETANIN</a>
+    <nav aria-label="Main navigation"><a href="#workbench">Workbench</a><a href="#about">About</a><a href="#portfolio">Portfolio</a></nav>
+    <a class="nav-cta" href="#workbench">Open toolbox ↓</a>
+  </header>
 
-			<!-- Header -->
-				<section id="header" class="wrapper">
+  <section class="hero" id="top">
+    <div class="hero-grid" aria-hidden="true"></div>
+    <div class="hero-molecule">
+      <div class="molecule-shell">
+        <div class="viewer-label"><span class="status-dot"></span><span id="viewer-status">LOADING STRUCTURE</span></div>
+        <div id="molecule-viewer" class="molecule-viewer" aria-label="Interactive 3D molecular structure"></div>
+        <div class="structure-switcher" aria-label="Choose molecular structure">
+          <button type="button" data-structure="0" title="Immunoglobulin G">1IGT</button>
+          <button type="button" data-structure="1" title="P2X7 receptor">6U9V</button>
+          <button type="button" data-structure="2" title="p53 DNA-binding domain">1TUP</button>
+          <button type="button" data-structure="3" title="BRD4 bromodomain">3MXF</button>
+          <button type="button" data-structure="4" title="Triosephosphate isomerase">1TIM</button>
+        </div>
+        <div class="viewer-help">DRAG TO ROTATE · SCROLL TO ZOOM</div>
+        <div class="viewer-tools"><button id="toggle-spin" type="button">PAUSE</button><button id="reset-view" type="button">RESET</button></div>
+      </div>
+    </div>
+    <div class="console-panel">
+      <div class="console-top"><span>RS / SCIENTIFIC WORKBENCH</span><span class="console-live">● ONLINE</span></div>
+      <p class="eyebrow">Molecular biology · Bioinformatics · Scientific computing</p>
+      <h1>RUSLAN<br><span>SMETANIN</span></h1>
+      <p class="hero-copy">A practical, growing collection of protocols, calculators, scripts and reference notes for reproducible molecular biology.</p>
+      <div class="tags"><span>Protocols</span><span>Tools</span><span>Scripts</span><span>Reference</span></div>
+      <div class="hero-actions"><a class="button primary" href="#workbench">Enter workbench <span>↓</span></a><a class="button ghost" href="#about">About me <span>↘</span></a></div>
+      <div class="console-bottom"><span>INTERACTIVE MOLECULAR VIEWER</span><span>5 STRUCTURES</span></div>
+    </div>
+  </section>
 
-					<!-- Logo -->
-						<div id="logo">
-							<h1><a href="index.html">Ruslan V. Smetanin</a></h1>
-							<p>My existence and the journey of my becoming.</p>
-						</div>
+  <section class="workbench section" id="workbench">
+    <div class="section-kicker">[ 01 / SCIENTIFIC WORKBENCH ]</div>
+    <div class="section-heading"><h2>Useful science,<br>kept within reach.</h2><p>Field-tested notes and lightweight utilities, organised around the way research actually happens. The first entries can be added without changing the site architecture.</p></div>
+    <div class="workbench-grid">
+      <article id="protocols" class="workbench-card"><span class="card-number">01</span><p class="mono-label">Reproducible bench workflows</p><h3>Protocols</h3><ul><li>Western &amp; capillary blot<span>↗</span></li><li>Immunoprecipitation<span>↗</span></li><li>Cell culture<span>↗</span></li><li>Sample preparation<span>↗</span></li></ul><button type="button">Browse collection ↗</button></article>
+      <article id="tools" class="workbench-card"><span class="card-number">02</span><p class="mono-label">Small utilities for daily research</p><h3>Tools</h3><ul><li>Solution calculator<span>↗</span></li><li>Dilution planner<span>↗</span></li><li>Sequence utilities<span>↗</span></li><li>Data converters<span>↗</span></li></ul><button type="button">Browse collection ↗</button></article>
+      <article id="scripts" class="workbench-card"><span class="card-number">03</span><p class="mono-label">Reusable analysis building blocks</p><h3>Scripts</h3><ul><li>Python<span>↗</span></li><li>R<span>↗</span></li><li>Shell<span>↗</span></li><li>Image &amp; data analysis<span>↗</span></li></ul><button type="button">Browse collection ↗</button></article>
+      <article id="reference" class="workbench-card"><span class="card-number">04</span><p class="mono-label">Facts worth keeping close</p><h3>Reference</h3><ul><li>Cell lines<span>↗</span></li><li>Antibodies<span>↗</span></li><li>Compounds<span>↗</span></li><li>Useful databases<span>↗</span></li></ul><button type="button">Browse collection ↗</button></article>
+    </div>
+  </section>
 
-					<!-- Nav -->
-						<nav id="nav">
-							<ul>
-								<li class="current"><a href="index.html">Home</a></li>
-								<li>
-									<a href="#">Dropdown</a>
-									<ul>
-										<li><a href="#">Lorem ipsum</a></li>
-										<li><a href="#">Magna veroeros</a></li>
-										<li><a href="#">Etiam nisl</a></li>
-										<li>
-											<a href="#">Sed consequat</a>
-											<ul>
-												<li><a href="#">Lorem dolor</a></li>
-												<li><a href="#">Amet consequat</a></li>
-												<li><a href="#">Magna phasellus</a></li>
-												<li><a href="#">Etiam nisl</a></li>
-												<li><a href="#">Sed feugiat</a></li>
-											</ul>
-										</li>
-										<li><a href="#">Nisl tempus</a></li>
-									</ul>
-								</li>
-								<li><a href="left-sidebar.html">Left Sidebar</a></li>
-								<li><a href="right-sidebar.html">Right Sidebar</a></li>
-								<li><a href="no-sidebar.html">No Sidebar</a></li>
-							</ul>
-						</nav>
+  <section class="about section" id="about">
+    <div class="section-kicker">[ 02 / ABOUT ]</div>
+    <div class="about-grid"><div><p class="eyebrow">Bench ↔ code</p><h2>Biology with<br>a computational edge.</h2></div><div class="about-copy"><p>I work where molecular biology, quantitative experiments and scientific computing meet. This site is both a public notebook and a set of tools built to make everyday research clearer, faster and easier to reproduce.</p><div class="about-facts"><span>MOLECULAR BIOLOGY</span><span>BIOINFORMATICS</span><span>DATA ANALYSIS</span><span>REPRODUCIBLE METHODS</span></div></div></div>
+  </section>
 
-				</section>
+  <section class="portfolio section" id="portfolio">
+    <div class="section-kicker">[ 03 / PORTFOLIO ]</div>
+    <div class="section-heading"><h2>Selected work<br>&amp; experiments.</h2><p>A compact home for research projects, publications and computational experiments. Real entries can replace these starting categories as the collection grows.</p></div>
+    <div class="project-list"><article><span>01</span><div><p>RESEARCH</p><h3>Molecular mechanisms &amp; experimental biology</h3></div><b>ONGOING</b></article><article><span>02</span><div><p>COMPUTATION</p><h3>Analysis pipelines and scientific software</h3></div><b>COLLECTION</b></article><article><span>03</span><div><p>OUTPUT</p><h3>Publications, posters and presentations</h3></div><b>ARCHIVE</b></article></div>
+  </section>
 
-			<!-- Intro -->
-				<section id="intro" class="wrapper style1">
-					<div class="title">The Introduction</div>
-					<div class="container">
-						<p class="style1">So in case you were wondering what this is all about ...</p>
-						<p class="style2">
-							The story of a dream fulfilled, a rise to greatness,<br class="mobile-hide" />
-							and a brutal fall from the heavens onto the jagged teeth of reality</a>
-						</p>
-						<p class="style3">It's <strong>responsive</strong>, built on <strong>HTML5</strong> and <strong>CSS3</strong>, and released for
-						free under the <a href="http://html5up.net/license">Creative Commons Attribution 3.0 license</a>, so use it for any of
-						your personal or commercial projects &ndash; just be sure to credit us!</p>
-						<ul class="actions">
-							<li><a href="#" class="button style3 large">Proceed</a></li>
-						</ul>
-					</div>
-				</section>
-
-			<!-- Main -->
-				<section id="main" class="wrapper style2">
-					<div class="title">The Details</div>
-					<div class="container">
-
-						<!-- Image -->
-							<a href="#" class="image featured">
-								<img src="images/pic01.jpg" alt="" />
-							</a>
-
-						<!-- Features -->
-							<section id="features">
-								<header class="style1">
-									<h2>Dolor consequat feugiat amet veroeros</h2>
-									<p>Feugiat dolor nullam orci pretium phasellus justo</p>
-								</header>
-								<div class="feature-list">
-									<div class="row">
-										<div class="col-6 col-12-medium">
-											<section>
-												<h3 class="icon fa-comment">Mattis velit diam vulputate</h3>
-												<p>Eget mattis at, laoreet vel et velit aliquam diam ante, aliquet sit amet vulputate et magna feugiat laoreet vel velit lorem.</p>
-											</section>
-										</div>
-										<div class="col-6 col-12-medium">
-											<section>
-												<h3 class="icon solid fa-sync">Lorem ipsum dolor sit veroeros</h3>
-												<p>Eget mattis at, laoreet vel et velit aliquam diam ante, aliquet sit amet vulputate et magna feugiat laoreet vel velit lorem.</p>
-											</section>
-										</div>
-										<div class="col-6 col-12-medium">
-											<section>
-												<h3 class="icon fa-image">Pretium phasellus justo lorem</h3>
-												<p>Eget mattis at, laoreet vel et velit aliquam diam ante, aliquet sit amet vulputate et magna feugiat laoreet vel velit lorem.</p>
-											</section>
-										</div>
-										<div class="col-6 col-12-medium">
-											<section>
-												<h3 class="icon solid fa-cog">Tempus sed pretium orci</h3>
-												<p>Eget mattis at, laoreet vel et velit aliquam diam ante, aliquet sit amet vulputate et magna feugiat laoreet vel velit lorem.</p>
-											</section>
-										</div>
-										<div class="col-6 col-12-medium">
-											<section>
-												<h3 class="icon solid fa-wrench">Aliquam consequat et feugiat</h3>
-												<p>Eget mattis at, laoreet vel et velit aliquam diam ante, aliquet sit amet vulputate et magna feugiat laoreet vel velit lorem.</p>
-											</section>
-										</div>
-										<div class="col-6 col-12-medium">
-											<section>
-												<h3 class="icon solid fa-check">Dolore laoreet aliquam mattis</h3>
-												<p>Eget mattis at, laoreet vel et velit aliquam diam ante, aliquet sit amet vulputate et magna feugiat laoreet vel velit lorem.</p>
-											</section>
-										</div>
-									</div>
-								</div>
-								<ul class="actions special">
-									<li><a href="#" class="button style1 large">Get Started</a></li>
-									<li><a href="#" class="button style2 large">More Info</a></li>
-								</ul>
-							</section>
-
-					</div>
-				</section>
-
-			<!-- Highlights -->
-				<section id="highlights" class="wrapper style3">
-					<div class="title">The Endorsements</div>
-					<div class="container">
-						<div class="row aln-center">
-							<div class="col-4 col-12-medium">
-								<section class="highlight">
-									<a href="#" class="image featured"><img src="images/pic02.jpg" alt="" /></a>
-									<h3><a href="#">Aliquam diam consequat</a></h3>
-									<p>Eget mattis at, laoreet vel amet sed velit aliquam diam ante, dolor aliquet sit amet vulputate mattis amet laoreet lorem.</p>
-									<ul class="actions">
-										<li><a href="#" class="button style1">Learn More</a></li>
-									</ul>
-								</section>
-							</div>
-							<div class="col-4 col-12-medium">
-								<section class="highlight">
-									<a href="#" class="image featured"><img src="images/pic03.jpg" alt="" /></a>
-									<h3><a href="#">Nisl adipiscing sed lorem</a></h3>
-									<p>Eget mattis at, laoreet vel amet sed velit aliquam diam ante, dolor aliquet sit amet vulputate mattis amet laoreet lorem.</p>
-									<ul class="actions">
-										<li><a href="#" class="button style1">Learn More</a></li>
-									</ul>
-								</section>
-							</div>
-							<div class="col-4 col-12-medium">
-								<section class="highlight">
-									<a href="#" class="image featured"><img src="images/pic04.jpg" alt="" /></a>
-									<h3><a href="#">Mattis tempus lorem</a></h3>
-									<p>Eget mattis at, laoreet vel amet sed velit aliquam diam ante, dolor aliquet sit amet vulputate mattis amet laoreet lorem.</p>
-									<ul class="actions">
-										<li><a href="#" class="button style1">Learn More</a></li>
-									</ul>
-								</section>
-							</div>
-						</div>
-					</div>
-				</section>
-
-			<!-- Footer -->
-				<section id="footer" class="wrapper">
-					<div class="title">The Rest Of It</div>
-					<div class="container">
-						<header class="style1">
-							<h2>Ipsum sapien elementum portitor?</h2>
-							<p>
-								Sed turpis tortor, tincidunt sed ornare in metus porttitor mollis nunc in aliquet.<br />
-								Nam pharetra laoreet imperdiet volutpat etiam feugiat.
-							</p>
-						</header>
-						<div class="row">
-							<div class="col-6 col-12-medium">
-
-								<!-- Contact Form -->
-									<section>
-										<form method="post" action="#">
-											<div class="row gtr-50">
-												<div class="col-6 col-12-small">
-													<input type="text" name="name" id="contact-name" placeholder="Name" />
-												</div>
-												<div class="col-6 col-12-small">
-													<input type="text" name="email" id="contact-email" placeholder="Email" />
-												</div>
-												<div class="col-12">
-													<textarea name="message" id="contact-message" placeholder="Message" rows="4"></textarea>
-												</div>
-												<div class="col-12">
-													<ul class="actions">
-														<li><input type="submit" class="style1" value="Send" /></li>
-														<li><input type="reset" class="style2" value="Reset" /></li>
-													</ul>
-												</div>
-											</div>
-										</form>
-									</section>
-
-							</div>
-							<div class="col-6 col-12-medium">
-
-								<!-- Contact -->
-									<section class="feature-list small">
-										<div class="row">
-											<div class="col-6 col-12-small">
-												<section>
-													<h3 class="icon solid fa-home">Mailing Address</h3>
-													<p>
-														Untitled Corp<br />
-														1234 Somewhere Rd<br />
-														Nashville, TN 00000
-													</p>
-												</section>
-											</div>
-											<div class="col-6 col-12-small">
-												<section>
-													<h3 class="icon solid fa-comment">Social</h3>
-													<p>
-														<a href="https://x.com/Russel18786?t=3OiTeBxdJTznghMO6l25iQ&s=09">Twitter/X</a><br />
-														<a href="https://www.linkedin.com/in/ruslan-smetanin-8b3779251/">LinkedIn</a><br />
-														<a href="https://www.instagram.com/russel_smith.13">Instagram</a>
-													</p>
-												</section>
-											</div>
-											<div class="col-6 col-12-small">
-												<section>
-													<h3 class="icon solid fa-envelope">Email</h3>
-													<p>
-														<a href="#">ruslan.v.smetanin@gmail.com</a>
-													</p>
-												</section>
-											</div>
-											<div class="col-6 col-12-small">
-												<section>
-													<h3 class="icon solid fa-phone">Phone</h3>
-													<p>
-														(000) 000-0000
-													</p>
-												</section>
-											</div>
-										</div>
-									</section>
-
-							</div>
-						</div>
-						<div id="copyright">
-							<ul>
-								<li>&copy; Untitled.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
-							</ul>
-						</div>
-					</div>
-				</section>
-
-		</div>
-
-		<!-- Scripts -->
-			<script src="assets/js/jquery.min.js"></script>
-			<script src="assets/js/jquery.dropotron.min.js"></script>
-			<script src="assets/js/browser.min.js"></script>
-			<script src="assets/js/breakpoints.min.js"></script>
-			<script src="assets/js/util.js"></script>
-			<script src="assets/js/main.js"></script>
-
-	</body>
+  <section class="contact section"><div><p class="section-kicker">[ CONTACT ]</p><h2>Questions lead<br>somewhere useful.</h2></div><div><p>For collaborations, scientific questions or suggestions for the toolbox, get in touch.</p><a class="button light" href="mailto:ruslan.v.smetanin@gmail.com">Email Ruslan <span>↗</span></a><small>RUSLAN.V.SMETANIN@GMAIL.COM</small></div></section>
+  <footer><a class="wordmark" href="#top"><span>RS</span> RUSLAN SMETANIN</a><p>Scientific protocols &amp; tools · Static and local-first</p><a href="#top">Back to top ↑</a></footer>
+</main>
+</body>
 </html>
