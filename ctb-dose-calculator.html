@@ -3,71 +3,120 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CTB Drug Dose Calculator — Ruslan Smetanin</title>
-  <meta name="description" content="Calculate plate-ready drug master mixes for CellTiter-Blue assays.">
+  <title>Plate Dilution Calculator — Ruslan Smetanin</title>
+  <meta name="description" content="Design a 96-well treatment plate and calculate per-well additions and working-solution preparation volumes.">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=4">
-  <script defer src="app.js?v=4"></script>
+  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="plate-calculator.css?v=1">
+  <script defer src="plate-calculator.js?v=1"></script>
 </head>
-<body class="ctb-app-page">
-  <header class="site-header ctb-app-header" id="top">
+<body class="plate-page">
+  <header class="site-header plate-header" id="top">
     <a class="wordmark" href="index.html" aria-label="Return to Ruslan Smetanin home"><span>RS</span> RUSLAN SMETANIN</a>
-    <nav aria-label="CTB tools"><a href="ctb-assay.html">CTB Analyzer</a><a href="#dose-calculator">Dose calculator</a></nav>
-    <a class="nav-cta" href="index.html">← Back to workbench</a>
+    <nav aria-label="Scientific tools"><a href="ctb-assay.html">CTB Analyzer</a><a href="#plate-plan">Plate plan</a><a href="#working-solutions">Working solutions</a></nav>
+    <a class="nav-cta" href="index.html">← Workbench</a>
   </header>
 
-  <main class="ctb-app">
-    <section class="ctb-app-hero ctb-dose-hero">
+  <main class="plate-app">
+    <section class="plate-hero">
       <div>
-        <p class="eyebrow">Scientific tool / CellTiter-Blue</p>
-        <h1>DRUG DOSE<br><span>CALCULATOR</span></h1>
-        <p class="ctb-app-lead">Prepare consistent plate-ready master mixes from a compound stock, with optional vehicle equalization across every condition.</p>
+        <p class="eyebrow">Scientific tool / 96-well plate</p>
+        <h1>PLATE<br><span>DILUTIONS</span></h1>
+        <p>Build 32 conditions with three replicate wells each. The calculator determines how much working solution to add to every well and how much of each working stock to prepare.</p>
       </div>
-      <ol class="ctb-workflow" aria-label="Dose calculation workflow">
-        <li><span>01</span><div><strong>Define</strong><small>Stock, wells and plate volumes</small></div></li>
-        <li><span>02</span><div><strong>Enter</strong><small>Final dose series</small></div></li>
-        <li><span>03</span><div><strong>Calculate</strong><small>Stock, vehicle and medium</small></div></li>
-        <li><span>04</span><div><strong>Export</strong><small>Plate-ready CSV recipe</small></div></li>
-      </ol>
+      <div class="plate-hero-facts">
+        <div><span>96</span><small>WELLS / PLATE</small></div>
+        <div><span>32</span><small>CONDITIONS</small></div>
+        <div><span id="hero-replicates">3</span><small>REPLICATES</small></div>
+        <div><span id="hero-plates">2</span><small>PLATES</small></div>
+      </div>
     </section>
 
-    <nav class="ctb-tool-nav" aria-label="Choose a CTB tool">
-      <a href="ctb-assay.html"><span>01</span> CTB Analyzer <b>SoftMax Excel → figure</b></a>
-      <a href="#dose-calculator"><span>02</span> Dose calculator <b>Stock → master mix</b></a>
-    </nav>
-
-    <section class="ctb-tool-section ctb-dose-section" id="dose-calculator">
-      <div class="ctb-section-intro">
-        <p class="mono-label">TOOL / 02</p>
-        <h2>Plate-ready<br>master mixes.</h2>
-        <p>Calculate one dosing mix per concentration. Extra vehicle can be added so every condition matches the highest-dose solvent percentage.</p>
+    <div class="plate-toolbar" aria-label="Plate calculator actions">
+      <div><span class="status-dot"></span><span id="plate-status" aria-live="polite">READY · EXAMPLE PLAN LOADED</span></div>
+      <div class="plate-toolbar-actions">
+        <button id="reset-plate" type="button">Reset example</button>
+        <button id="download-plate-csv" type="button">Plate CSV ↓</button>
+        <button id="download-prep-csv" type="button">Preparation CSV ↓</button>
+        <button id="print-plate" type="button">Print / PDF</button>
       </div>
+    </div>
 
-      <article class="ctb-panel ctb-dose-panel">
-        <div class="tool-heading"><div><p class="mono-label">STOCK → PLATE-READY MASTER MIX</p><h3>Dosing setup</h3></div><span>RUNS LOCALLY</span></div>
-        <div class="dose-fields">
-          <label class="field field-wide"><span>Drug / compound</span><input id="dose-drug-name" type="text" value="Compound A"></label>
-          <label class="field"><span>Stock [mM]</span><input id="dose-stock" type="number" value="10" min="0" step="any"></label>
-          <label class="field"><span>Final well volume [µL]</span><input id="dose-final-volume" type="number" value="100" min="0" step="any"></label>
-          <label class="field"><span>Dosing volume [µL]</span><input id="dose-addition-volume" type="number" value="10" min="0" step="any"></label>
-          <label class="field"><span>Wells / dose</span><input id="dose-wells" type="number" value="6" min="1" step="1"></label>
-          <label class="field"><span>Extra volume [%]</span><input id="dose-overage" type="number" value="15" min="0" step="1"></label>
-          <label class="field field-wide"><span>Final doses [µM]</span><small>Comma, semicolon or space separated</small><input id="dose-targets" type="text" value="0, 0.003, 0.01, 0.03, 0.1, 0.3, 1, 3, 10"></label>
-          <label class="vehicle-toggle field-wide"><input id="dose-equalize-vehicle" type="checkbox" checked><span>Equalize vehicle to the highest dose</span></label>
+    <section class="plate-settings-section">
+      <article class="plate-panel settings-panel">
+        <div class="plate-panel-heading"><div><p class="mono-label">STEP / 01</p><h2>Experiment settings</h2></div><span>EDIT INPUTS</span></div>
+        <div class="plate-settings-grid">
+          <label class="plate-field"><span>Medium already in each well [µL]</span><input id="well-volume" type="number" min="0.01" step="any" value="100"></label>
+          <label class="plate-field"><span>Number of plates</span><input id="plate-count" type="number" min="1" step="1" value="2"></label>
+          <label class="plate-field"><span>Replicates / condition</span><input id="replicate-count" type="number" min="1" max="3" step="1" value="3"><small>One condition block contains up to 3 wells.</small></label>
+          <label class="plate-field"><span>Extra volume [%]</span><input id="plate-overage" type="number" min="0" step="1" value="15"></label>
         </div>
-        <button id="calculate-doses" class="tool-button" type="button">Calculate master mixes <span>→</span></button>
-        <div id="dose-summary" class="dose-summary" aria-live="polite"></div>
-        <div class="result-table-wrap"><table class="result-table dose-table"><thead><tr><th>Final [µM]</th><th>Dosing mix [µM]</th><th>Total mix [µL]</th><th>Stock [µL]</th><th>Extra vehicle [µL]</th><th>Medium [µL]</th><th>Vehicle final [%]</th><th>pmol / well</th></tr></thead><tbody id="dose-results-body"></tbody></table></div>
-        <div class="tool-actions"><button id="download-dose-csv" type="button">Download recipe CSV ↓</button></div>
-        <div id="dose-warnings" class="dose-warnings"></div>
-        <p class="formula-note">Dosing mix concentration = final concentration × final well volume / dosing volume. Stock volume = dosing mix concentration × total mix volume / stock concentration.</p>
-        <p class="assay-note">Planning aid: confirm stock concentration, solvent tolerance, plate layout and assay-specific controls against your laboratory SOP before dosing cells.</p>
+        <p class="plate-formula-note">The entered medium volume is already in the well. Added drug solution increases the final volume; combination treatments are solved together so both final concentrations remain correct.</p>
+      </article>
+
+      <article class="plate-panel compounds-panel">
+        <div class="plate-panel-heading"><div><p class="mono-label">STEP / 02</p><h2>Compounds</h2></div><button id="add-compound" type="button">+ Add compound</button></div>
+        <div class="compound-table-wrap">
+          <table class="compound-table">
+            <thead><tr><th>Color</th><th>Compound</th><th>Stock [µM]</th><th>Working [µM]</th><th></th></tr></thead>
+            <tbody id="compound-body"></tbody>
+          </table>
+        </div>
+        <p class="plate-formula-note">Use the same unit for stock, working and final concentrations. Defaults are in µM; 100 nM is entered as 0.1 µM.</p>
       </article>
     </section>
 
-    <section class="ctb-privacy-note"><span>LOCAL-FIRST</span><p>Your values are processed inside this browser and are not uploaded to a server.</p><a href="ctb-assay.html">Open CTB Analyzer →</a></section>
+    <section class="plate-plan-section" id="plate-plan">
+      <div class="plate-section-heading">
+        <div><p class="mono-label">STEP / 03</p><h2>96-well plate plan</h2></div>
+        <p>Each card controls three adjacent wells. Click any condition to set Medium, Blank, one compound or a two-compound combination.</p>
+      </div>
+      <div class="plate-plan-shell">
+        <div class="plate-plan-head"><span>ROW</span><span>WELLS 1–3</span><span>WELLS 4–6</span><span>WELLS 7–9</span><span>WELLS 10–12</span></div>
+        <div id="plate-plan-grid" class="plate-plan-grid"></div>
+      </div>
+      <div id="plate-errors" class="plate-errors" aria-live="polite"></div>
+    </section>
+
+    <section class="working-section" id="working-solutions">
+      <div class="plate-section-heading">
+        <div><p class="mono-label">STEP / 04</p><h2>Working solutions to prepare</h2></div>
+        <p>Volumes include all conditions, selected replicates, number of plates and extra volume. Preparation volume rounds up to the next 50 µL with a 100 µL minimum.</p>
+      </div>
+      <div class="working-table-wrap">
+        <table class="working-table">
+          <thead><tr><th>Compound</th><th>Working [µM]</th><th>Needed + extra [µL]</th><th>Prepare [µL]</th><th>Take stock [µL]</th><th>Add medium [µL]</th><th>Assessment</th></tr></thead>
+          <tbody id="working-body"></tbody>
+        </table>
+      </div>
+      <div class="plate-summary-bar"><span>ACTIVE COMPOUNDS <strong id="active-compounds">0</strong></span><span>TREATMENT CONDITIONS <strong id="treatment-count">0</strong></span><span>TOTAL PLANNED WELLS <strong id="planned-wells">0</strong></span></div>
+      <p class="assay-note">Planning aid: verify compound solubility, solvent tolerance, working-stock stability and laboratory SOP before dosing cells.</p>
+    </section>
   </main>
 
-  <footer><a class="wordmark" href="index.html"><span>RS</span> RUSLAN SMETANIN</a><p>CellTiter-Blue dose calculator · Static and local-first</p><a href="#top">Back to top ↑</a></footer>
+  <dialog id="condition-dialog" class="condition-dialog">
+    <form method="dialog" id="condition-form">
+      <div class="condition-dialog-head"><div><p class="mono-label">EDIT CONDITION</p><h2 id="condition-dialog-title">A1–A3</h2></div><button class="dialog-close" value="cancel" aria-label="Close condition editor">×</button></div>
+      <div class="condition-dialog-body">
+        <label class="plate-field"><span>Condition type</span><select id="condition-type"><option value="treatment">Treatment</option><option value="medium">Medium</option><option value="blank">Blank</option></select></label>
+        <div id="treatment-editor" class="treatment-editor">
+          <div class="component-editor">
+            <p>Compound 1</p>
+            <label class="plate-field"><span>Compound</span><select id="condition-compound-1"></select></label>
+            <label class="plate-field"><span>Final concentration [µM]</span><input id="condition-final-1" type="number" min="0" step="any"></label>
+          </div>
+          <div class="component-editor">
+            <p>Compound 2 · optional</p>
+            <label class="plate-field"><span>Compound</span><select id="condition-compound-2"></select></label>
+            <label class="plate-field"><span>Final concentration [µM]</span><input id="condition-final-2" type="number" min="0" step="any"></label>
+          </div>
+        </div>
+        <div id="condition-preview" class="condition-preview"></div>
+      </div>
+      <div class="condition-dialog-actions"><button value="cancel">Cancel</button><button id="save-condition" class="primary-action" value="default">Save condition</button></div>
+    </form>
+  </dialog>
+
+  <footer><a class="wordmark" href="index.html"><span>RS</span> RUSLAN SMETANIN</a><p>Plate dilution calculator · Static and local-first</p><a href="#top">Back to top ↑</a></footer>
 </body>
 </html>
