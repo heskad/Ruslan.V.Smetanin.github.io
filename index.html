@@ -10,15 +10,15 @@
   <meta property="og:image" content="https://heskad.github.io/Ruslan.V.Smetanin.github.io/assets/images/og.png">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=2">
   <script defer src="assets/js/3Dmol-min.js"></script>
-  <script defer src="app.js"></script>
+  <script defer src="app.js?v=2"></script>
 </head>
 <body>
 <main>
   <header class="site-header">
     <a class="wordmark" href="#top" aria-label="Ruslan Smetanin home"><span>RS</span> RUSLAN SMETANIN</a>
-    <nav aria-label="Main navigation"><a href="#workbench">Workbench</a><a href="#about">About</a><a href="#portfolio">Portfolio</a></nav>
+    <nav aria-label="Main navigation"><a href="#workbench">Workbench</a><a href="#ctb-assay">CTB Assay</a><a href="#about">About</a><a href="#portfolio">Portfolio</a></nav>
     <a class="nav-cta" href="#workbench">Open toolbox ↓</a>
   </header>
 
@@ -55,19 +55,75 @@
     <div class="section-heading"><h2>Useful science,<br>kept within reach.</h2><p>Field-tested notes and lightweight utilities, organised around the way research actually happens. The first entries can be added without changing the site architecture.</p></div>
     <div class="workbench-grid">
       <article id="protocols" class="workbench-card"><span class="card-number">01</span><p class="mono-label">Reproducible bench workflows</p><h3>Protocols</h3><ul><li>Western &amp; capillary blot<span>↗</span></li><li>Immunoprecipitation<span>↗</span></li><li>Cell culture<span>↗</span></li><li>Sample preparation<span>↗</span></li></ul><button type="button">Browse collection ↗</button></article>
-      <article id="tools" class="workbench-card"><span class="card-number">02</span><p class="mono-label">Small utilities for daily research</p><h3>Tools</h3><ul><li>Solution calculator<span>↗</span></li><li>Dilution planner<span>↗</span></li><li>Sequence utilities<span>↗</span></li><li>Data converters<span>↗</span></li></ul><button type="button">Browse collection ↗</button></article>
+      <article id="tools" class="workbench-card"><span class="card-number">02</span><p class="mono-label">Small utilities for daily research</p><h3>Tools</h3><ul><li>CTB dose–response graph<span>↗</span></li><li>CTB dose calculator<span>↗</span></li><li>Solution calculator<span>↗</span></li><li>Data converters<span>↗</span></li></ul><a class="card-link" href="#ctb-assay">Open CTB workspace ↗</a></article>
       <article id="scripts" class="workbench-card"><span class="card-number">03</span><p class="mono-label">Reusable analysis building blocks</p><h3>Scripts</h3><ul><li>Python<span>↗</span></li><li>R<span>↗</span></li><li>Shell<span>↗</span></li><li>Image &amp; data analysis<span>↗</span></li></ul><button type="button">Browse collection ↗</button></article>
       <article id="reference" class="workbench-card"><span class="card-number">04</span><p class="mono-label">Facts worth keeping close</p><h3>Reference</h3><ul><li>Cell lines<span>↗</span></li><li>Antibodies<span>↗</span></li><li>Compounds<span>↗</span></li><li>Useful databases<span>↗</span></li></ul><button type="button">Browse collection ↗</button></article>
     </div>
   </section>
 
+  <section class="ctb-suite section" id="ctb-assay">
+    <div class="section-kicker">[ 02 / CTB ASSAY WORKSPACE ]</div>
+    <div class="section-heading"><h2>From plate reader<br>to dose–response.</h2><p>Two local-first tools for CellTiter-Blue workflows: normalize replicate fluorescence and plot viability, then prepare consistent dosing mixes from a drug stock.</p></div>
+
+    <div class="ctb-tool-grid">
+      <article class="ctb-panel ctb-graph-panel">
+        <div class="tool-heading"><div><p class="mono-label">RAW RFU → NORMALIZED VIABILITY</p><h3>CTB graph builder</h3></div><span>TOOL / 01</span></div>
+        <p class="tool-intro">Paste one dose per row followed by replicate RFU values. The vehicle control is normalized to 100%; error bars show sample SD.</p>
+        <div class="ctb-input-grid">
+          <label class="field field-wide"><span>Plate data</span><small>Dose [µM], Rep 1, Rep 2, Rep 3…</small><textarea id="ctb-data" rows="10" spellcheck="false">Dose,Rep 1,Rep 2,Rep 3
+0,12500,12380,12620
+0.003,12140,11990,12080
+0.01,11420,11610,11290
+0.03,9800,10120,9950
+0.1,7420,7180,7300
+0.3,4680,4510,4590
+1,2520,2640,2470
+3,1320,1410,1360
+10,820,790,840</textarea></label>
+          <div class="field-stack">
+            <label class="field"><span>Blank RFU</span><input id="ctb-blank" type="number" value="500" min="0" step="1"></label>
+            <label class="field"><span>Control dose [µM]</span><input id="ctb-control-dose" type="number" value="0" step="any"></label>
+            <button id="build-ctb-chart" class="tool-button" type="button">Build graph <span>→</span></button>
+          </div>
+        </div>
+        <p id="ctb-chart-status" class="tool-status" aria-live="polite"></p>
+        <div class="chart-shell"><svg id="ctb-chart" viewBox="0 0 820 470" role="img" aria-label="CTB dose response chart"></svg></div>
+        <div class="tool-actions"><button id="download-ctb-csv" type="button">Download results CSV ↓</button><button id="download-ctb-svg" type="button">Download graph SVG ↓</button></div>
+        <div class="result-table-wrap"><table class="result-table"><thead><tr><th>Dose [µM]</th><th>n</th><th>Mean RFU</th><th>Corrected RFU</th><th>Viability [%]</th><th>SD [%]</th></tr></thead><tbody id="ctb-results-body"></tbody></table></div>
+        <p class="formula-note">Blank correction: RFU<sub>corrected</sub> = RFU − blank. Normalization: viability = mean corrected sample / mean corrected vehicle control × 100.</p>
+      </article>
+
+      <article class="ctb-panel ctb-dose-panel">
+        <div class="tool-heading"><div><p class="mono-label">STOCK → PLATE-READY MASTER MIX</p><h3>Drug dose calculator</h3></div><span>TOOL / 02</span></div>
+        <p class="tool-intro">Calculate one dosing mix per concentration. By default, extra vehicle is added so every condition matches the highest-dose vehicle percentage.</p>
+        <div class="dose-fields">
+          <label class="field field-wide"><span>Drug / compound</span><input id="dose-drug-name" type="text" value="Compound A"></label>
+          <label class="field"><span>Stock [mM]</span><input id="dose-stock" type="number" value="10" min="0" step="any"></label>
+          <label class="field"><span>Final well volume [µL]</span><input id="dose-final-volume" type="number" value="100" min="0" step="any"></label>
+          <label class="field"><span>Dosing volume [µL]</span><input id="dose-addition-volume" type="number" value="10" min="0" step="any"></label>
+          <label class="field"><span>Wells / dose</span><input id="dose-wells" type="number" value="6" min="1" step="1"></label>
+          <label class="field"><span>Extra volume [%]</span><input id="dose-overage" type="number" value="15" min="0" step="1"></label>
+          <label class="field field-wide"><span>Final doses [µM]</span><small>Comma, semicolon or space separated</small><input id="dose-targets" type="text" value="0, 0.003, 0.01, 0.03, 0.1, 0.3, 1, 3, 10"></label>
+          <label class="vehicle-toggle field-wide"><input id="dose-equalize-vehicle" type="checkbox" checked><span>Equalize vehicle to the highest dose</span></label>
+        </div>
+        <button id="calculate-doses" class="tool-button" type="button">Calculate master mixes <span>→</span></button>
+        <div id="dose-summary" class="dose-summary" aria-live="polite"></div>
+        <div class="result-table-wrap"><table class="result-table dose-table"><thead><tr><th>Final [µM]</th><th>Dosing mix [µM]</th><th>Total mix [µL]</th><th>Stock [µL]</th><th>Extra vehicle [µL]</th><th>Medium [µL]</th><th>Vehicle final [%]</th><th>pmol / well</th></tr></thead><tbody id="dose-results-body"></tbody></table></div>
+        <div class="tool-actions"><button id="download-dose-csv" type="button">Download recipe CSV ↓</button></div>
+        <div id="dose-warnings" class="dose-warnings"></div>
+        <p class="formula-note">Dosing mix concentration = final concentration × final well volume / dosing volume. Stock volume = dosing mix concentration × total mix volume / stock concentration.</p>
+        <p class="assay-note">Planning aid: confirm stock concentration, solvent tolerance, plate layout and assay-specific controls against your laboratory SOP before dosing cells.</p>
+      </article>
+    </div>
+  </section>
+
   <section class="about section" id="about">
-    <div class="section-kicker">[ 02 / ABOUT ]</div>
+    <div class="section-kicker">[ 03 / ABOUT ]</div>
     <div class="about-grid"><div><p class="eyebrow">Bench ↔ code</p><h2>Biology with<br>a computational edge.</h2></div><div class="about-copy"><p>I work where molecular biology, quantitative experiments and scientific computing meet. This site is both a public notebook and a set of tools built to make everyday research clearer, faster and easier to reproduce.</p><div class="about-facts"><span>MOLECULAR BIOLOGY</span><span>BIOINFORMATICS</span><span>DATA ANALYSIS</span><span>REPRODUCIBLE METHODS</span></div></div></div>
   </section>
 
   <section class="portfolio section" id="portfolio">
-    <div class="section-kicker">[ 03 / PORTFOLIO ]</div>
+    <div class="section-kicker">[ 04 / PORTFOLIO ]</div>
     <div class="section-heading"><h2>Selected work<br>&amp; experiments.</h2><p>A compact home for research projects, publications and computational experiments. Real entries can replace these starting categories as the collection grows.</p></div>
     <div class="project-list"><article><span>01</span><div><p>RESEARCH</p><h3>Molecular mechanisms &amp; experimental biology</h3></div><b>ONGOING</b></article><article><span>02</span><div><p>COMPUTATION</p><h3>Analysis pipelines and scientific software</h3></div><b>COLLECTION</b></article><article><span>03</span><div><p>OUTPUT</p><h3>Publications, posters and presentations</h3></div><b>ARCHIVE</b></article></div>
   </section>
