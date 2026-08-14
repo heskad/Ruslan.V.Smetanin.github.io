@@ -7,7 +7,7 @@
   <meta name="description" content="Design a 96-well treatment plate and calculate per-well additions and working-solution preparation volumes.">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css?v=5">
-  <link rel="stylesheet" href="plate-calculator.css?v=1">
+  <link rel="stylesheet" href="plate-calculator.css?v=2">
   <script defer src="plate-calculator.js?v=1"></script>
 </head>
 <body class="plate-page">
@@ -35,6 +35,7 @@
     <div class="plate-toolbar" aria-label="Plate calculator actions">
       <div><span class="status-dot"></span><span id="plate-status" aria-live="polite">READY · EXAMPLE PLAN LOADED</span></div>
       <div class="plate-toolbar-actions">
+        <a href="assets/downloads/Plate_calculator_simple.xlsx" download>Excel template ↓</a>
         <button id="reset-plate" type="button">Reset example</button>
         <button id="download-plate-csv" type="button">Plate CSV ↓</button>
         <button id="download-prep-csv" type="button">Preparation CSV ↓</button>
