@@ -525,9 +525,9 @@ function renderLabelLegend(){
 function renderLabelHeatmap(){
   const box=$('labelHeatmap'),show=$('showLabelHeatmap')?.checked,s=currentLabelSeries();
   if(!box)return;
-  if(!show){box.hidden=true;box.innerHTML='';return;}
+  if(!show){if(typeof Plotly!=='undefined')Plotly.purge(box);box.hidden=true;box.replaceChildren();return;}
   box.hidden=false;
-  if(!s){box.innerHTML='<div class="small" style="padding:12px">Load a plate to see the heatmap.</div>';return;}
+  if(!s){if(typeof Plotly!=='undefined')Plotly.purge(box);box.innerHTML='<div class="small" style="padding:12px">Load a plate to see the heatmap.</div>';return;}
   if(typeof Plotly==='undefined'){box.innerHTML='<div class="error notice">Plotly did not load.</div>';return;}
   const z=[],text=[];
   for(let i=0;i<8;i++){
@@ -538,7 +538,7 @@ function renderLabelHeatmap(){
     }
     z.push(zr);text.push(tr);
   }
-  Plotly.react('labelHeatmap',[{type:'heatmap',z,x:[1,2,3,4,5,6,7,8,9,10,11,12],y:['A','B','C','D','E','F','G','H'],text,hovertemplate:'%{text}<extra></extra>',colorscale:'Viridis'}],{title:{text:s.label+' — raw CTB',x:.01,xanchor:'left'},yaxis:{autorange:'reversed'},xaxis:{dtick:1,title:'Column'},margin:{l:45,r:15,t:55,b:45},height:320},{responsive:true,displaylogo:false});
+  Plotly.react(box,[{type:'heatmap',z,x:[1,2,3,4,5,6,7,8,9,10,11,12],y:['A','B','C','D','E','F','G','H'],text,hovertemplate:'%{text}<extra></extra>',colorscale:'Viridis'}],{title:{text:s.label+' — raw CTB',x:.01,xanchor:'left'},yaxis:{autorange:'reversed'},xaxis:{dtick:1,title:'Column'},margin:{l:45,r:15,t:55,b:45},height:320},{responsive:true,displaylogo:false});
 }
 function toggleLabelHeatmap(){renderLabelHeatmap();persistWorkspace();}
 function updateLabelSelectionView(){
