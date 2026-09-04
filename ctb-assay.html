@@ -40,6 +40,22 @@ input[type=checkbox]{width:17px;height:17px}
 .stats{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:10px}@media(max-width:800px){.stats{grid-template-columns:repeat(2,1fr)}}
 .stat{border:1px solid var(--line);border-radius:10px;padding:11px;background:#fbfcff}.stat .v{font-size:22px;font-weight:700}.stat .k{font-size:11px;color:var(--muted)}
 .table-wrap{overflow:auto;max-height:540px;border:1px solid var(--line);border-radius:10px}
+
+.labeling-intro{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center}
+.label-toolbar{display:grid;grid-template-columns:minmax(170px,1fr) auto auto;gap:8px;align-items:end}
+.label-toolbar .field{min-width:180px}
+.well-grid-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px;padding:10px;background:#f8fafc}
+.well-grid{display:grid;grid-template-columns:repeat(12,minmax(64px,1fr));gap:6px;min-width:840px}
+.well-cell{min-height:72px;padding:7px 5px;border:1px solid #cfd8e6;border-radius:8px;background:#fff;color:var(--text);cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:3px}
+.well-cell:hover{border-color:var(--primary);background:#f3f6ff}
+.well-cell.selected{border-color:var(--primary);box-shadow:0 0 0 2px rgba(53,89,224,.25);background:#edf2ff}
+.well-cell.labeled{border-top:4px solid #15803d}
+.well-cell .well-id{font-size:11px;font-weight:700}
+.well-cell .well-value{font-size:11px;color:var(--muted)}
+.well-cell .well-label{font-size:10px;color:#1e40af;white-space:normal;overflow-wrap:anywhere}
+.well-cell:not(.labeled) .well-label{color:var(--muted);font-style:italic}
+@media(max-width:800px){.labeling-intro{grid-template-columns:1fr}.label-toolbar{grid-template-columns:1fr}.label-toolbar .field{min-width:0}}
+
 table{border-collapse:collapse;width:100%;font-size:12px}th,td{padding:7px 8px;border-bottom:1px solid #edf0f5;text-align:left;vertical-align:middle}th{position:sticky;top:0;background:#f8fafc;z-index:2}tr:hover td{background:#fafcff}
 .treatment-name{min-width:220px}.mini{padding:5px 7px;font-size:11px}.pill{display:inline-block;padding:3px 7px;border-radius:999px;font-size:11px;background:#eef2f7;color:#455468}.pill.out{background:#fee2e2;color:#991b1b}.pill.ok{background:#dcfce7;color:#166534}
 #plot{min-height:690px}.plot-shell{padding:8px 12px 16px;overflow-x:auto}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
@@ -71,8 +87,8 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
       <div class="panel-head"><h3>1. Load SoftMax Excel</h3></div>
       <div class="panel-body stack">
         <div id="dropzone" class="drop" onclick="document.getElementById('fileInput').click()">
-          <div style="font-size:30px">📄</div><b>Drop .xlsx files here</b><div class="small">or click to choose files</div>
-          <input id="fileInput" type="file" accept=".xlsx,.xlsm" multiple>
+          <div style="font-size:30px">📄</div><b>Drop .xls / .xlsx files here</b><div class="small">or click to choose files</div>
+          <input id="fileInput" type="file" accept=".xls,.xlsx,.xlsm" multiple>
         </div>
         <div id="loadMessage" class="notice">All calculations happen in this page. No Python/R installation is required.</div>
         <div id="seriesList" class="stack"></div>
@@ -116,14 +132,43 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
   <section>
     <div class="panel">
       <div class="tabs">
-        <button class="tab active" data-tab="plotTab">Figure</button>
+        <button class="tab active" data-tab="labelTab">Data labels</button>
+        <button class="tab" data-tab="plotTab">Figure</button>
         <button class="tab" data-tab="treatmentTab">Treatments</button>
         <button class="tab" data-tab="plateTab">Plate</button>
         <button class="tab" data-tab="auditTab">Audit</button>
         <button class="tab" data-tab="dataTab">Processed data</button>
       </div>
 
-      <div id="plotTab" class="tabpage active">
+      <div id="labelTab" class="tabpage active">
+        <div class="panel-body stack">
+          <div class="labeling-intro">
+            <div>
+              <h3>1. Label wells</h3>
+              <div class="small">Select one or several wells, choose a treatment, then apply the label. Labels are used immediately for grouping and the figure.</div>
+            </div>
+            <button onclick="selectAllLabelWells()">Select all</button>
+          </div>
+          <div class="label-toolbar">
+            <div class="field"><label>Plate to label</label><select id="labelPlateSelect" onchange="renderLabelPlate()"></select></div>
+            <button class="primary" onclick="applyLabelToSelected()">Apply label</button>
+            <button onclick="clearLabelFromSelected()">Clear labels</button>
+          </div>
+          <div class="row">
+            <div class="field grow"><label>Treatment for selected wells</label><select id="labelTreatmentSelect"></select></div>
+            <button onclick="addTreatmentOption()">+ Add new treatment</button>
+            <button onclick="activateTab('plotTab')">Open figure</button>
+          </div>
+          <div class="row">
+            <div class="field grow"><label>New medicine / treatment name</label><input id="newTreatmentName" type="text" placeholder="e.g. Cisplatin"></div>
+          </div>
+          <div id="labelSelectionStatus" class="notice">Load a plate to begin labeling.</div>
+          <div class="well-grid-wrap"><div id="labelPlateGrid" class="well-grid"></div></div>
+          <div class="small">Tip: click a well to select it; click again to remove it from the selection. A label such as “Blank”, “Medium” or “Control” can be used by the analysis controls on the left.</div>
+        </div>
+      </div>
+
+      <div id="plotTab" class="tabpage">
         <div class="panel-body">
           <div id="stats" class="stats"></div>
         </div>
@@ -189,6 +234,10 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
 'use strict';
 const COLORS=['#F8766D','#00BA38','#619CFF','#C77CFF','#00BFC4','#B79F00','#7CAE00','#FF61C3','#00A9FF','#CD9600'];
 const UNITS=['pM','nM','µM','mM','M','ng/mL','µg/mL','mg/mL','%','custom'];
+const DEFAULT_TREATMENTS=['Blank','Medium','Control','Vehicle','DMSO','Axitinib','BzATP','Cisplatin','Doxorubicin','Gemcitabine','Etoposide','Paclitaxel','Staurosporine'];
+const drugCatalog=[...DEFAULT_TREATMENTS];
+try{const saved=JSON.parse(localStorage.getItem('ctb-treatment-catalog')||'[]');if(Array.isArray(saved))saved.forEach(x=>{const name=String(x||'').trim();if(name&&!drugCatalog.some(v=>v.toLowerCase()===name.toLowerCase()))drugCatalog.push(name);});}catch(e){}
+const labelSelection=new Set();
 const state={series:[],treatments:new Map(),treatmentOrder:[],processed:[],summary:[],outliers:[],checks:[],editingTreatment:null,plotData:[],plotLayout:{}};
 const $=id=>document.getElementById(id);
 
@@ -304,7 +353,7 @@ async function parseExcelFile(file){
 
 async function handleFiles(files){
   for(const file of [...files]){
-    if(!/\.(xlsx|xlsm)$/i.test(file.name)){setMessage(`Skipped ${file.name}: only .xlsx/.xlsm are supported.`,'warn');continue;}
+    if(!/\.(xls|xlsx|xlsm)$/i.test(file.name)){setMessage(`Skipped ${file.name}: only .xlsx/.xlsm are supported.`,'warn');continue;}
     try{
       setMessage(`Reading ${file.name}...`,'notice');
       const rows=await parseExcelFile(file);
@@ -329,6 +378,7 @@ function syncTreatments(){
   state.treatmentOrder=state.treatmentOrder.filter(k=>found.includes(k));
   found.forEach(k=>{if(!state.treatmentOrder.includes(k))state.treatmentOrder.push(k);});
   refreshTreatmentSelects();
+  refreshLabelTreatmentSelect();
 }
 
 function treatmentLabel(key){const cfg=state.treatments.get(key);return cfg?buildTreatmentLabel(cfg):key;}
@@ -341,6 +391,80 @@ function refreshTreatmentSelects(){
   const ctrlGuess=state.treatmentOrder.find(k=>['medium','control','vehicle','untreated'].includes(k.trim().toLowerCase()));
   blank.value=state.treatments.has(prevB)?prevB:(blankGuess||state.treatmentOrder[0]||'');
   control.value=state.treatments.has(prevC)?prevC:(ctrlGuess||state.treatmentOrder[0]||'');
+}
+
+
+function renderLabelPlateSelectors(){
+  const sel=$('labelPlateSelect');if(!sel)return;
+  const prev=sel.value;
+  sel.innerHTML=state.series.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.label)+' — '+esc(s.fileName)+'</option>').join('');
+  if(state.series.some(s=>s.id===prev))sel.value=prev;
+  else if(state.series.length)sel.value=state.series[0].id;
+  renderLabelPlate();
+}
+function refreshLabelTreatmentSelect(){
+  const sel=$('labelTreatmentSelect');if(!sel)return;
+  const prev=sel.value;
+  const keys=[...drugCatalog,...state.treatmentOrder].filter((k,i,a)=>a.indexOf(k)===i);
+  sel.innerHTML='<option value="">Choose treatment…</option>'+keys.map(k=>'<option value="'+esc(k)+'">'+esc(k)+'</option>').join('');
+  if(keys.includes(prev))sel.value=prev;
+}
+function currentLabelSeries(){
+  const id=$('labelPlateSelect')?.value;
+  return state.series.find(s=>s.id===id)||state.series[0]||null;
+}
+function renderLabelPlate(){
+  const host=$('labelPlateGrid'),status=$('labelSelectionStatus');
+  if(!host||!status)return;
+  const s=currentLabelSeries();
+  if(!s){host.innerHTML='<div class="small">No plates loaded yet.</div>';status.textContent='Load a plate to begin labeling.';status.className='notice';return;}
+  const cells=[];
+  for(const r of s.rows){
+    const selected=labelSelection.has(r.well);
+    const labeled=r.treatment!=null&&String(r.treatment).trim()!=='';
+    const shownLabel=labeled?treatmentLabel(r.treatment):'Not labeled';
+    cells.push('<button type="button" class="well-cell'+(selected?' selected':'')+(labeled?' labeled':'')+'" aria-label="'+esc(r.well+' '+shownLabel)+'" onclick="toggleLabelWell('+JSON.stringify(r.well)+')"><span class="well-id">'+esc(r.well)+'</span><span class="well-value">CTB: '+esc(fmt(r.ctb_raw,0)||'—')+'</span><span class="well-label">'+esc(shownLabel)+'</span></button>');
+  }
+  host.innerHTML=cells.join('');
+  const labeledCount=s.rows.filter(r=>r.treatment!=null&&String(r.treatment).trim()!=='').length;
+  status.textContent=labelSelection.size+' selected · '+labeledCount+' labeled wells · '+s.label;
+  status.className=labelSelection.size?'notice success':'notice';
+}
+function toggleLabelWell(well){
+  if(labelSelection.has(well))labelSelection.delete(well);else labelSelection.add(well);
+  renderLabelPlate();
+}
+function selectAllLabelWells(){
+  const s=currentLabelSeries();if(!s)return;
+  s.rows.forEach(r=>labelSelection.add(r.well));renderLabelPlate();
+}
+function clearLabelSelection(){labelSelection.clear();renderLabelPlate();}
+function addTreatmentOption(){
+  const input=$('newTreatmentName'),name=input.value.trim();
+  if(!name){setMessage('Enter a treatment name first.','warn');input.focus();return;}
+  const existing=drugCatalog.find(x=>x.toLowerCase()===name.toLowerCase());
+  if(!existing)drugCatalog.push(name);
+  try{localStorage.setItem('ctb-treatment-catalog',JSON.stringify(drugCatalog));}catch(e){}
+  refreshLabelTreatmentSelect();$('labelTreatmentSelect').value=existing||name;input.value='';
+  setMessage('Treatment option added: '+(existing||name),'success');
+}
+function applyLabelToSelected(){
+  const s=currentLabelSeries(),label=$('labelTreatmentSelect')?.value;
+  if(!s){setMessage('Load a plate first.','warn');return false;}
+  if(!label){setMessage('Choose or add a treatment before applying it.','warn');return false;}
+  const targets=s.rows.filter(r=>labelSelection.has(r.well));
+  if(!targets.length){setMessage('Select at least one well in the plate grid.','warn');return false;}
+  targets.forEach(r=>r.treatment=label);
+  if(!state.treatments.has(label))state.treatments.set(label,{key:label,show:label.trim().toLowerCase()!=='blank',manualLabel:'',components:parseExistingTreatment(label)});
+  labelSelection.clear();syncTreatments();refreshAll();
+  setMessage('Applied “'+label+'” to '+targets.length+' wells.','success');return true;
+}
+function clearLabelFromSelected(){
+  const s=currentLabelSeries();if(!s)return;
+  const targets=s.rows.filter(r=>labelSelection.has(r.well));
+  if(!targets.length){setMessage('Select wells whose labels should be cleared.','warn');return;}
+  targets.forEach(r=>r.treatment=null);labelSelection.clear();syncTreatments();refreshAll();
+  setMessage('Cleared labels from '+targets.length+' wells.','success');
 }
 
 function renderSeriesList(){
@@ -483,8 +607,8 @@ function renderProcessed(){
   $('processedBody').innerHTML=state.processed.slice(0,800).map(r=>'<tr>'+cols.map(c=>`<td>${esc(Number.isFinite(r[c])?fmt(r[c],c==='ctb_raw'||c==='corrected'?0:3):(r[c]??''))}</td>`).join('')+'</tr>').join('');
 }
 
-function refreshAll(){renderSeriesList();renderTreatmentTable();refreshTreatmentSelects();renderPlateSelectors();recalculate();}
-function clearAll(){if(state.series.length&&!confirm('Clear all loaded plates and settings?'))return;state.series=[];state.treatments.clear();state.treatmentOrder=[];state.processed=[];state.summary=[];state.outliers=[];state.checks=[];refreshAll();setMessage('All data cleared.','notice');}
+function refreshAll(){renderSeriesList();renderTreatmentTable();refreshTreatmentSelects();renderPlateSelectors();renderLabelPlateSelectors();recalculate();}
+function clearAll(){if(state.series.length&&!confirm('Clear all loaded plates and settings?'))return;labelSelection.clear();state.series=[];state.treatments.clear();state.treatmentOrder=[];state.processed=[];state.summary=[];state.outliers=[];state.checks=[];refreshAll();setMessage('All data cleared.','notice');}
 
 function csvString(rows,cols){const q=v=>{const s=String(v??'');return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;};return [cols.map(q).join(','),...rows.map(r=>cols.map(c=>q(r[c])).join(','))].join('\n');}
 function downloadBlob(content,name,type='text/plain;charset=utf-8'){const b=content instanceof Blob?content:new Blob([content],{type});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
@@ -513,7 +637,8 @@ function applyPreset(p){
   renderSeriesList();renderTreatmentTable();refreshTreatmentSelects();if(s.blank&&state.treatments.has(s.blank))$('blankSelect').value=s.blank;if(s.control&&state.treatments.has(s.control))$('controlSelect').value=s.control;recalculate();
 }
 
-function setupTabs(){document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tabpage').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.tab).classList.add('active');if(b.dataset.tab==='plateTab')renderPlate();}));}
+function activateTab(tabId){document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===tabId));document.querySelectorAll('.tabpage').forEach(x=>x.classList.toggle('active',x.id===tabId));if(tabId==='plateTab')renderPlate();}
+function setupTabs(){document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>activateTab(b.dataset.tab)));}
 function setupUpload(){
   $('fileInput').addEventListener('change',e=>handleFiles(e.target.files));const dz=$('dropzone');
   ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag');}));['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag');}));dz.addEventListener('drop',e=>handleFiles(e.dataTransfer.files));
