@@ -713,6 +713,7 @@ function setupAutoUpdate(){
   ['plotTitle','axisTitle','fontSize','barOpacity','legendPosition'].forEach(id=>$(id).addEventListener('change',renderPlot));
 }
 
+document.addEventListener('pointerup',endWellSelection);
 setupTabs();setupUpload();setupAutoUpdate();refreshAll();
 </script>
 </body>
