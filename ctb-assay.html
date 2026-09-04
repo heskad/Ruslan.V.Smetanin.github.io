@@ -42,6 +42,27 @@ input[type=checkbox]{width:17px;height:17px}
 .table-wrap{overflow:auto;max-height:540px;border:1px solid var(--line);border-radius:10px}
 
 .labeling-intro{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center}
+.label-workflow{display:grid;grid-template-columns:minmax(0,1fr) minmax(290px,360px);gap:14px;align-items:start}
+.label-card{border:1px solid var(--line);border-radius:12px;background:#fbfcfe;padding:14px}
+.label-card h3{margin:0 0 5px}
+.label-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}
+.label-selection-controls{display:flex;gap:6px;flex-wrap:wrap}
+.label-selection-controls button{white-space:nowrap}
+.label-card .well-grid-wrap{background:#f8fafc}
+.label-editor-card{position:sticky;top:82px}
+.label-editor-note{margin-bottom:12px}
+.label-component-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:14px 0 8px}
+.label-component-head b{font-size:13px}
+.label-action-stack{display:grid;gap:8px;margin-top:16px}
+.label-action-stack button{width:100%}
+.label-more{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+.label-more summary{cursor:pointer;color:#475467;font-size:12px;font-weight:600}
+.label-new-drug{display:flex;gap:8px;margin-top:10px}
+.label-new-drug input{min-width:0}
+.label-component{background:#fff;padding:8px;border-radius:8px}
+@media(max-width:1200px){.label-workflow{grid-template-columns:minmax(0,1fr)}.label-editor-card{position:static}}
+@media(max-width:800px){.label-card-head{display:block}.label-selection-controls{margin-top:10px}.label-new-drug{display:grid;grid-template-columns:1fr}.label-component-head{align-items:flex-start;flex-direction:column}}
+
 .label-toolbar{display:grid;grid-template-columns:minmax(170px,1fr) auto auto;gap:8px;align-items:end}
 .label-toolbar .field{min-width:180px}
 .well-grid-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px;padding:10px;background:#f8fafc}
@@ -144,29 +165,40 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
         <div class="panel-body stack">
           <div class="labeling-intro">
             <div>
-              <h3>1. Label wells</h3>
-              <div class="small">Click or drag across wells to select several at once. Build a single drug or a combination with a concentration for each component, then apply the label.</div>
+              <h3>Label your plate</h3>
+              <div class="small">Two simple steps: select the wells below, then assign one drug or a drug combination with concentrations.</div>
             </div>
-            <button onclick="selectAllLabelWells()">Select all</button>
           </div>
-          <div class="label-toolbar">
-            <div class="field"><label>Plate to label</label><select id="labelPlateSelect" onchange="labelSelection.clear();renderLabelPlate()"></select></div>
-            <button class="primary" onclick="applyLabelToSelected()">Apply label</button>
-            <button onclick="clearLabelFromSelected()">Clear labels</button>
+          <div class="label-workflow">
+            <section class="label-card">
+              <div class="label-card-head">
+                <div><div class="small">STEP 1</div><h3>Select wells</h3><div class="small">Click individual wells or drag across several.</div></div>
+                <div class="label-selection-controls"><button onclick="selectAllLabelWells()">Select all</button><button onclick="clearLabelSelection()">Clear selection</button></div>
+              </div>
+              <div class="field"><label>Plate</label><select id="labelPlateSelect" onchange="labelSelection.clear();renderLabelPlate()"></select></div>
+              <div id="labelSelectionStatus" class="notice">Load a plate to begin labeling.</div>
+              <div class="well-grid-wrap"><div id="labelPlateGrid" class="well-grid"></div></div>
+              <div class="small">Selected wells will receive the same treatment label.</div>
+            </section>
+            <section class="label-card label-editor-card">
+              <div class="small">STEP 2</div>
+              <h3>Assign treatment</h3>
+              <div class="label-editor-note small">Choose a saved label, or compose a new one below.</div>
+              <div class="field"><label>Saved treatment / drug</label><select id="labelTreatmentSelect" onchange="loadLabelTreatmentEditor(this.value)"></select></div>
+              <div class="label-component-head"><b>Drug and concentration</b><button class="mini" onclick="addLabelComponent()">+ Add drug to combination</button></div>
+              <div id="labelComponentRows" class="label-components"></div>
+              <details class="label-more">
+                <summary>Add a new drug to the list</summary>
+                <div class="label-new-drug"><input id="newTreatmentName" type="text" placeholder="e.g. Cabozantinib"><button onclick="addTreatmentOption()">Add drug</button></div>
+              </details>
+              <div class="label-action-stack">
+                <button class="primary" onclick="applyLabelToSelected()">Assign to selected wells</button>
+                <button onclick="clearLabelFromSelected()">Remove labels from selected</button>
+                <button onclick="activateTab('plotTab')">Open figure</button>
+              </div>
+            </section>
           </div>
-          <div class="row">
-            <div class="field grow"><label>Quick treatment / saved label</label><select id="labelTreatmentSelect" onchange="loadLabelTreatmentEditor(this.value)"></select></div>
-            <button onclick="addLabelComponent()">+ Add component</button>
-            <button onclick="addTreatmentOption()">+ Add drug</button>
-            <button onclick="activateTab('plotTab')">Open figure</button>
-          </div>
-          <div id="labelComponentRows" class="label-components"></div>
-          <div class="row">
-            <div class="field grow"><label>New medicine name</label><input id="newTreatmentName" type="text" placeholder="e.g. Cabozantinib"></div>
-          </div>
-          <div id="labelSelectionStatus" class="notice">Load a plate to begin labeling.</div>
-          <div class="well-grid-wrap"><div id="labelPlateGrid" class="well-grid"></div></div>
-          <div class="small">Tip: click a well to toggle it, or drag across the grid to select several. Shift-click adds to the current selection. A label such as “Blank”, “Medium” or “Control” can be used by the analysis controls on the left.</div>
+          <div class="small">For controls, use labels such as “Blank”, “Medium” or “Control”. The graph updates automatically after assignment.</div>
         </div>
       </div>
 
