@@ -672,7 +672,7 @@ function renderProcessed(){
   $('processedBody').innerHTML=state.processed.slice(0,800).map(r=>'<tr>'+cols.map(c=>`<td>${esc(Number.isFinite(r[c])?fmt(r[c],c==='ctb_raw'||c==='corrected'?0:3):(r[c]??''))}</td>`).join('')+'</tr>').join('');
 }
 
-function refreshAll(){renderSeriesList();renderTreatmentTable();refreshTreatmentSelects();renderPlateSelectors();renderLabelPlateSelectors();renderLabelComponentRows();recalculate();}
+function refreshAll(){renderSeriesList();renderTreatmentTable();refreshTreatmentSelects();refreshLabelTreatmentSelect();renderPlateSelectors();renderLabelPlateSelectors();renderLabelComponentRows();recalculate();}
 function clearAll(){if(state.series.length&&!confirm('Clear all loaded plates and settings?'))return;labelSelection.clear();state.series=[];state.treatments.clear();state.treatmentOrder=[];state.processed=[];state.summary=[];state.outliers=[];state.checks=[];refreshAll();setMessage('All data cleared.','notice');}
 
 function csvString(rows,cols){const q=v=>{const s=String(v??'');return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;};return [cols.map(q).join(','),...rows.map(r=>cols.map(c=>q(r[c])).join(','))].join('\n');}
