@@ -60,17 +60,22 @@ input[type=checkbox]{width:17px;height:17px}
 .label-new-drug{display:flex;gap:8px;margin-top:10px}
 .label-new-drug input{min-width:0}
 .label-component{background:#fff;padding:8px;border-radius:8px}
+.label-legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.label-legend-item{display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:10px}
+.label-legend-swatch{width:10px;height:10px;border-radius:50%;background:var(--well-color);flex:0 0 auto}
+.label-heatmap{min-height:300px;margin-top:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+
 @media(max-width:1200px){.label-workflow{grid-template-columns:minmax(0,1fr)}.label-editor-card{position:static}}
-@media(max-width:800px){.label-card-head{display:block}.label-selection-controls{margin-top:10px}.label-new-drug{display:grid;grid-template-columns:1fr}.label-component-head{align-items:flex-start;flex-direction:column}}
+@media(max-width:800px){.label-card-head{display:block}.label-selection-controls{margin-top:10px}.label-new-drug{display:grid;grid-template-columns:1fr}.label-component-head{align-items:flex-start;flex-direction:column}.well-grid{gap:3px}.well-cell{min-height:52px;padding:3px 1px;text-align:center;align-items:center}.well-cell .well-id{font-size:9px}.well-cell .well-value{display:none}.well-cell .well-label{font-size:8px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}}
 
 .label-toolbar{display:grid;grid-template-columns:minmax(170px,1fr) auto auto;gap:8px;align-items:end}
 .label-toolbar .field{min-width:180px}
-.well-grid-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px;padding:10px;background:#f8fafc}
-.well-grid{display:grid;grid-template-columns:repeat(12,minmax(64px,1fr));gap:6px;min-width:840px}
-.well-cell{touch-action:none;min-height:72px;padding:7px 5px;border:1px solid #cfd8e6;border-radius:8px;background:#fff;color:var(--text);cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:3px}
+.well-grid-wrap{overflow:hidden;border:1px solid var(--line);border-radius:10px;padding:10px;background:#f8fafc}
+.well-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px;min-width:0}
+.well-cell{touch-action:none;min-width:0;overflow:hidden;min-height:72px;padding:7px 5px;border:1px solid #cfd8e6;border-radius:8px;background:#fff;color:var(--text);cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:3px}
 .well-cell:hover{border-color:var(--primary);background:#f3f6ff}
 .well-cell.selected{border-color:var(--primary);box-shadow:0 0 0 2px rgba(53,89,224,.25);background:#edf2ff}
-.well-cell.labeled{border-top:4px solid #15803d}
+.well-cell.labeled{border-top:4px solid var(--well-color,#15803d);box-shadow:inset 0 0 0 1px var(--well-color,#15803d)}
 .well-cell .well-id{font-size:11px;font-weight:700}
 .well-cell .well-value{font-size:11px;color:var(--muted)}
 .well-cell .well-label{font-size:10px;color:#1e40af;white-space:normal;overflow-wrap:anywhere}
@@ -166,7 +171,7 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
           <div class="labeling-intro">
             <div>
               <h3>Label your plate</h3>
-              <div class="small">Two simple steps: select the wells below, then assign one drug or a drug combination with concentrations.</div>
+              <div class="small">Two simple steps: select wells below, then assign a drug or combination with its concentration.</div>
             </div>
           </div>
           <div class="label-workflow">
@@ -178,13 +183,15 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
               <div class="field"><label>Plate</label><select id="labelPlateSelect" onchange="labelSelection.clear();renderLabelPlate()"></select></div>
               <div id="labelSelectionStatus" class="notice">Load a plate to begin labeling.</div>
               <div class="well-grid-wrap"><div id="labelPlateGrid" class="well-grid"></div></div>
-              <div class="small">Selected wells will receive the same treatment label.</div>
+              <label class="row"><input id="showLabelHeatmap" type="checkbox"> Show heatmap preview</label>
+              <div id="labelHeatmap" class="label-heatmap" hidden></div>
+              <div id="labelLegend" class="label-legend"></div>
+              <div class="small">Selected wells will receive the same treatment label. Colors show which treatment is assigned.</div>
             </section>
             <section class="label-card label-editor-card">
               <div class="small">STEP 2</div>
               <h3>Assign treatment</h3>
-              <div class="label-editor-note small">Choose a saved label, or compose a new one below.</div>
-              <div class="field"><label>Saved treatment / drug</label><select id="labelTreatmentSelect" onchange="loadLabelTreatmentEditor(this.value)"></select></div>
+              <div class="label-editor-note small">Choose the drug and concentration below. Add another drug for a combination.</div>
               <div class="label-component-head"><b>Drug and concentration</b><button class="mini" onclick="addLabelComponent()">+ Add drug to combination</button></div>
               <div id="labelComponentRows" class="label-components"></div>
               <details class="label-more">
@@ -193,12 +200,14 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
               </details>
               <div class="label-action-stack">
                 <button class="primary" onclick="applyLabelToSelected()">Assign to selected wells</button>
+                <button onclick="setMediumAsControl()">Set Medium = 100%</button>
                 <button onclick="clearLabelFromSelected()">Remove labels from selected</button>
                 <button onclick="activateTab('plotTab')">Open figure</button>
               </div>
+              <div class="small">Blank is used only for background subtraction and is not plotted. Medium is used as 100% when selected as the control.</div>
             </section>
           </div>
-          <div class="small">For controls, use labels such as “Blank”, “Medium” or “Control”. The graph updates automatically after assignment.</div>
+          <div class="small">The graph updates automatically after assignment. You can still change normalization and error-bar settings in the Analysis panel.</div>
         </div>
       </div>
 
@@ -274,6 +283,7 @@ try{const saved=JSON.parse(localStorage.getItem('ctb-treatment-catalog')||'[]');
 const labelSelection=new Set();
 const labelEditor=[{name:'',conc:null,unit:'µM',customUnit:''}];
 const labelDrag={active:false,mode:'add'};
+const TREATMENT_COLORS=['#2563eb','#dc2626','#059669','#d97706','#7c3aed','#db2777','#0891b2','#65a30d','#ea580c','#4f46e5','#be123c','#0f766e'];
 const state={series:[],treatments:new Map(),treatmentOrder:[],processed:[],summary:[],outliers:[],checks:[],editingTreatment:null,plotData:[],plotLayout:{}};
 const $=id=>document.getElementById(id);
 
@@ -453,13 +463,14 @@ function renderLabelPlate(){
   const host=$('labelPlateGrid'),status=$('labelSelectionStatus');
   if(!host||!status)return;
   const s=currentLabelSeries();
-  if(!s){host.innerHTML='<div class="small">No plates loaded yet.</div>';status.textContent='Load a plate to begin labeling.';status.className='notice';return;}
+  if(!s){host.innerHTML='<div class="small">No plates loaded yet.</div>';status.textContent='Load a plate to begin labeling.';status.className='notice';renderLabelLegend();renderLabelHeatmap();return;}
   const cells=[];
   for(const r of s.rows){
     const selected=labelSelection.has(r.well);
     const labeled=r.treatment!=null&&String(r.treatment).trim()!=='';
     const shownLabel=labeled?treatmentLabel(r.treatment):'Not labeled';
-    cells.push('<button type="button" class="well-cell'+(selected?' selected':'')+(labeled?' labeled':'')+'" data-well="'+esc(r.well)+'" aria-label="'+esc(r.well+' '+shownLabel)+'"><span class="well-id">'+esc(r.well)+'</span><span class="well-value">CTB: '+esc(fmt(r.ctb_raw,0)||'—')+'</span><span class="well-label">'+esc(shownLabel)+'</span></button>');
+    const color=labeled?treatmentColor(r.treatment):'';
+    cells.push('<button type="button" class="well-cell'+(selected?' selected':'')+(labeled?' labeled':'')+'"'+(color?' style="--well-color:'+color+'"':'')+' data-well="'+esc(r.well)+'" aria-label="'+esc(r.well+' '+shownLabel)+'"><span class="well-id">'+esc(r.well)+'</span><span class="well-value">CTB: '+esc(fmt(r.ctb_raw,0)||'—')+'</span><span class="well-label">'+esc(shownLabel)+'</span></button>');
   }
   host.innerHTML=cells.join('');
   host.querySelectorAll('.well-cell').forEach(cell=>{
@@ -468,6 +479,35 @@ function renderLabelPlate(){
   });
   updateLabelSelectionView();
 }
+function treatmentColor(key){
+  const text=String(key||'');let hash=0;
+  for(let i=0;i<text.length;i++)hash=((hash<<5)-hash)+text.charCodeAt(i)|0;
+  return TREATMENT_COLORS[Math.abs(hash)%TREATMENT_COLORS.length];
+}
+function renderLabelLegend(){
+  const host=$('labelLegend');if(!host)return;
+  const keys=state.treatmentOrder.filter(k=>k.trim().toLowerCase()!=='blank');
+  host.innerHTML=keys.map(k=>'<span class="label-legend-item" style="--well-color:'+treatmentColor(k)+'"><span class="label-legend-swatch"></span>'+esc(treatmentLabel(k))+'</span>').join('');
+}
+function renderLabelHeatmap(){
+  const box=$('labelHeatmap'),show=$('showLabelHeatmap')?.checked,s=currentLabelSeries();
+  if(!box)return;
+  if(!show){box.hidden=true;box.innerHTML='';return;}
+  box.hidden=false;
+  if(!s){box.innerHTML='<div class="small" style="padding:12px">Load a plate to see the heatmap.</div>';return;}
+  if(typeof Plotly==='undefined'){box.innerHTML='<div class="error notice">Plotly did not load.</div>';return;}
+  const z=[],text=[];
+  for(let i=0;i<8;i++){
+    const zr=[],tr=[];
+    for(let j=1;j<=12;j++){
+      const r=s.rows.find(x=>x.plate_row==='ABCDEFGH'[i]&&x.plate_column===j)||{};
+      zr.push(r.ctb_raw??null);tr.push((r.well||'')+'<br>'+esc(r.treatment?treatmentLabel(r.treatment):'Not labeled')+'<br>CTB: '+fmt(r.ctb_raw,0));
+    }
+    z.push(zr);text.push(tr);
+  }
+  Plotly.react('labelHeatmap',[{type:'heatmap',z,x:[1,2,3,4,5,6,7,8,9,10,11,12],y:['A','B','C','D','E','F','G','H'],text,hovertemplate:'%{text}<extra></extra>',colorscale:'Viridis'}],{title:{text:s.label+' — raw CTB',x:.01,xanchor:'left'},yaxis:{autorange:'reversed'},xaxis:{dtick:1,title:'Column'},margin:{l:45,r:15,t:55,b:45},height:320},{responsive:true,displaylogo:false});
+}
+function toggleLabelHeatmap(){renderLabelHeatmap();persistWorkspace();}
 function updateLabelSelectionView(){
   const host=$('labelPlateGrid'),status=$('labelSelectionStatus'),s=currentLabelSeries();
   if(!host||!status||!s)return;
@@ -540,7 +580,7 @@ function addTreatmentOption(){
   const existing=drugCatalog.find(x=>x.toLowerCase()===name.toLowerCase());
   if(!existing)drugCatalog.push(name);
   try{localStorage.setItem('ctb-treatment-catalog',JSON.stringify(drugCatalog));}catch(e){}
-  refreshLabelTreatmentSelect();$('labelTreatmentSelect').value=existing||name;loadLabelTreatmentEditor(existing||name);input.value='';
+  refreshLabelTreatmentSelect();if($('labelTreatmentSelect'))$('labelTreatmentSelect').value=existing||name;loadLabelTreatmentEditor(existing||name);input.value='';
   setMessage('Drug option added: '+(existing||name),'success');
 }
 function applyLabelToSelected(){
@@ -556,12 +596,47 @@ function applyLabelToSelected(){
   labelSelection.clear();syncTreatments();refreshAll();
   setMessage('Applied “'+label+'” to '+targets.length+' wells.','success');return true;
 }
+function setMediumAsControl(){
+  const key=state.treatmentOrder.find(k=>k.trim().toLowerCase()==='medium');
+  if(!key){setMessage('First label at least one well as Medium.','warn');return;}
+  $('normalize').checked=true;$('controlSelect').value=key;recalculate();
+  setMessage('Graph normalized to Medium = 100%. Blank is not plotted.','success');
+}
 function clearLabelFromSelected(){
   const s=currentLabelSeries();if(!s)return;
   const targets=s.rows.filter(r=>labelSelection.has(r.well));
   if(!targets.length){setMessage('Select wells whose labels should be cleared.','warn');return;}
   targets.forEach(r=>r.treatment=null);labelSelection.clear();syncTreatments();refreshAll();
   setMessage('Cleared labels from '+targets.length+' wells.','success');
+}
+
+function currentSettings(){
+  const ids=['outlierMethod','outlierThreshold','excludeOutliers','subtractBlank','blankSelect','normalize','controlSelect','errorMode','referenceLine','plotTitle','axisTitle','fontSize','barOpacity','legendPosition'];
+  const settings={};ids.forEach(id=>{const el=$(id);if(el)settings[id]=el.type==='checkbox'?el.checked:el.value;});return settings;
+}
+function applySettings(settings){
+  const set=(id,val)=>{const el=$(id);if(val!==undefined&&el)el.value=val;};
+  const chk=(id,val)=>{const el=$(id);if(val!==undefined&&el)el.checked=!!val;};
+  Object.entries(settings||{}).forEach(([id,val])=>{const el=$(id);if(!el)return;if(el.type==='checkbox')el.checked=!!val;else el.value=val;});
+}
+function persistWorkspace(){
+  try{
+    const payload={version:2,series:state.series.map(s=>({id:s.id,fileName:s.fileName,label:s.label,color:s.color,include:s.include,rows:s.rows})),treatments:Object.fromEntries([...state.treatments.entries()]),treatmentOrder:[...state.treatmentOrder],settings:currentSettings(),labelEditor:labelEditor,catalog:drugCatalog,showLabelHeatmap:$('showLabelHeatmap')?.checked||false};
+    localStorage.setItem('ctb-workspace',JSON.stringify(payload));
+  }catch(e){console.warn('Could not save CTB workspace:',e);}
+}
+function restoreWorkspace(){
+  try{
+    const payload=JSON.parse(localStorage.getItem('ctb-workspace')||'null');if(!payload)return;
+    state.series=(payload.series||[]).map(s=>{const id=s.id||uid();return {...s,id,rows:(s.rows||[]).map(r=>({...r,sourceId:id}))};});
+    state.treatments=new Map(Object.entries(payload.treatments||{}).map(([key,value])=>[key,{key,...value}]));
+    state.treatmentOrder=Array.isArray(payload.treatmentOrder)?payload.treatmentOrder:[];
+    if(Array.isArray(payload.catalog))payload.catalog.forEach(name=>{const value=String(name||'').trim();if(value&&!drugCatalog.some(x=>x.toLowerCase()===value.toLowerCase()))drugCatalog.push(value);});
+    if(Array.isArray(payload.labelEditor)&&payload.labelEditor.length)labelEditor.splice(0,labelEditor.length,...payload.labelEditor.map(c=>({...c})));
+    applySettings(payload.settings||{});
+    if($('showLabelHeatmap'))$('showLabelHeatmap').checked=!!payload.showLabelHeatmap;
+    if(state.series.length)syncTreatments();
+  }catch(e){console.warn('Could not restore CTB workspace:',e);}
 }
 
 function renderSeriesList(){
@@ -658,7 +733,7 @@ function recalculate(){
       state.summary.push({sourceId:s.id,series:s.label,treatment:key,display:treatmentLabel(key),mean:m,sd:sdev,sem,n,error:err,errorMode});
     }
   }
-  renderAudit();renderProcessed();renderStats();renderPlot();
+  renderAudit();renderProcessed();renderStats();renderPlot();persistWorkspace();
 }
 
 function renderStats(){
@@ -682,7 +757,7 @@ function renderPlot(){
   const height=Math.max(650,labels.length*42+180);
   const compact=window.innerWidth<700;
   const layout={title:{text:$('plotTitle').value||'CTB assay',x:0.01,xanchor:'left'},barmode:'group',bargap:0.20,bargroupgap:0.06,height,margin:{l:compact?145:260,r:lp==='Right'?(compact?90:180):25,t:lp==='Top'?100:65,b:85},font:{size:Number($('fontSize').value)||14},xaxis:{title:$('axisTitle').value||'',zeroline:true},yaxis:{categoryorder:'array',categoryarray:labels,autorange:'reversed',automargin:true},legend,showlegend,shapes,plot_bgcolor:'#fff',paper_bgcolor:'#fff'};
-  state.plotData=traces;state.plotLayout=layout;Plotly.react('plot',traces,layout,{responsive:true,displaylogo:false,modeBarButtonsToRemove:['lasso2d','select2d']});
+  state.plotData=traces;state.plotLayout=layout;Plotly.react('plot',traces,layout,{responsive:true,displaylogo:false,modeBarButtonsToRemove:['lasso2d','select2d']});persistWorkspace();
 }
 
 function renderPlateSelectors(){
@@ -705,7 +780,7 @@ function renderProcessed(){
 }
 
 function refreshAll(){renderSeriesList();renderTreatmentTable();refreshTreatmentSelects();refreshLabelTreatmentSelect();renderPlateSelectors();renderLabelPlateSelectors();renderLabelComponentRows();recalculate();}
-function clearAll(){if(state.series.length&&!confirm('Clear all loaded plates and settings?'))return;labelSelection.clear();state.series=[];state.treatments.clear();state.treatmentOrder=[];state.processed=[];state.summary=[];state.outliers=[];state.checks=[];refreshAll();setMessage('All data cleared.','notice');}
+function clearAll(){if(state.series.length&&!confirm('Clear all loaded plates and settings?'))return;labelSelection.clear();try{localStorage.removeItem('ctb-workspace');}catch(e){}state.series=[];state.treatments.clear();state.treatmentOrder=[];state.processed=[];state.summary=[];state.outliers=[];state.checks=[];refreshAll();setMessage('All data cleared.','notice');}
 
 function csvString(rows,cols){const q=v=>{const s=String(v??'');return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;};return [cols.map(q).join(','),...rows.map(r=>cols.map(c=>q(r[c])).join(','))].join('\n');}
 function downloadBlob(content,name,type='text/plain;charset=utf-8'){const b=content instanceof Blob?content:new Blob([content],{type});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
@@ -742,11 +817,12 @@ function setupUpload(){
 }
 function setupAutoUpdate(){
   ['outlierMethod','outlierThreshold','excludeOutliers','subtractBlank','blankSelect','normalize','controlSelect','errorMode','referenceLine'].forEach(id=>$(id).addEventListener('change',recalculate));
-  ['plotTitle','axisTitle','fontSize','barOpacity','legendPosition'].forEach(id=>$(id).addEventListener('change',renderPlot));
+  ['plotTitle','axisTitle','fontSize','barOpacity','legendPosition'].forEach(id=>$(id).addEventListener('change',()=>{renderPlot();persistWorkspace();}));
+  $('showLabelHeatmap')?.addEventListener('change',toggleLabelHeatmap);
 }
 
 document.addEventListener('pointerup',endWellSelection);
-setupTabs();setupUpload();setupAutoUpdate();refreshAll();
+restoreWorkspace();setupTabs();setupUpload();setupAutoUpdate();refreshAll();
 </script>
 </body>
 </html>
