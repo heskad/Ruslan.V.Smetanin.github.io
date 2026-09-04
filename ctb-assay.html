@@ -132,7 +132,7 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
         <hr>
         <label class="row"><input id="subtractBlank" type="checkbox" checked> Subtract blank background</label>
         <div class="field"><label>Blank treatment</label><select id="blankSelect"></select></div>
-        <label class="row"><input id="normalize" type="checkbox" checked> Normalize to control = 100%</label>
+        <label class="row"><input id="normalize" type="checkbox" checked> Normalize to control = 100% <span class="small">(Medium chosen automatically when available)</span></label>
         <div class="field"><label>Normalization control</label><select id="controlSelect"></select></div>
         <div class="field"><label>Error bars</label><select id="errorMode"><option>SD</option><option>SEM</option><option>95% CI</option><option>None</option></select></div>
         <label class="row"><input id="referenceLine" type="checkbox" checked> Show 100% reference line</label>
@@ -477,7 +477,7 @@ function renderLabelPlate(){
     cell.addEventListener('pointerdown',event=>beginWellSelection(event,cell.dataset.well));
     cell.addEventListener('pointerenter',()=>continueWellSelection(cell.dataset.well));
   });
-  updateLabelSelectionView();
+  updateLabelSelectionView();renderLabelLegend();renderLabelHeatmap();
 }
 function treatmentColor(key){
   const text=String(key||'');let hash=0;
@@ -546,18 +546,18 @@ function renderLabelComponentRows(){
   host.innerHTML=labelEditor.map((c,i)=>{
     const units=UNITS.map(u=>'<option value="'+esc(u)+'"'+(u===c.unit?' selected':'')+'>'+esc(u)+'</option>').join('');
     const custom=c.unit==='custom'?'<input type="text" placeholder="custom unit" value="'+esc(c.customUnit||'')+'" oninput="updateLabelComponent('+i+',\'customUnit\',this.value)">':'';
-    return '<div class="component label-component"><div class="field"><label>Drug '+(i+1)+'</label><select onchange="updateLabelComponent('+i+',\'name\',this.value)"><option value="">Choose drug…</option>'+componentOptions(c.name||'')+'</select></div><div class="field"><label>Concentration</label><input type="number" step="any" value="'+(c.conc??'')+'" placeholder="optional" oninput="updateLabelComponent('+i+',\'conc\',this.value)"></div><div class="field"><label>Unit</label><select onchange="updateLabelComponent('+i+',\'unit\',this.value);renderLabelComponentRows()">'+units+'</select>'+custom+'</div><button type="button" class="mini danger remove-comp" onclick="removeLabelComponent('+i+')">✕</button></div>';
+    return '<div class="component label-component"><div class="field"><label>Drug '+(i+1)+'</label><select onchange="updateLabelComponent('+i+',\'name\',this.value)"><option value="">Choose drug…</option>'+componentOptions(c.name||'')+'</select></div><div class="field"><label>Concentration</label><input type="number" step="any" value="'+(c.conc??'')+'" placeholder="optional" oninput="updateLabelComponent('+i+',\'conc\',this.value)"></div><div class="field"><label>Unit</label><select onchange="updateLabelComponent('+i+',\'unit\',this.value);renderLabelComponentRows()">'+units+'</select>'+custom+'</div><button type="button" class="mini danger remove-comp" aria-label="Remove drug component" title="Remove this drug" onclick="removeLabelComponent('+i+')">✕</button></div>';
   }).join('');
 }
 function updateLabelComponent(i,field,value){
   const c=labelEditor[i];if(!c)return;
-  c[field]=field==='conc'?(value===''?null:Number(value)):value;
+  c[field]=field==='conc'?(value===''?null:Number(value)):value;persistWorkspace();
 }
 function addLabelComponent(name=''){
-  labelEditor.push({name,conc:null,unit:'µM',customUnit:''});renderLabelComponentRows();
+  labelEditor.push({name,conc:null,unit:'µM',customUnit:''});renderLabelComponentRows();persistWorkspace();
 }
 function removeLabelComponent(i){
-  labelEditor.splice(i,1);if(!labelEditor.length)labelEditor.push({name:'',conc:null,unit:'µM',customUnit:''});renderLabelComponentRows();
+  labelEditor.splice(i,1);if(!labelEditor.length)labelEditor.push({name:'',conc:null,unit:'µM',customUnit:''});renderLabelComponentRows();persistWorkspace();
 }
 function loadLabelTreatmentEditor(value){
   if(!value)return;
