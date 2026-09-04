@@ -130,13 +130,15 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
         </div>
         <label class="row"><input id="excludeOutliers" type="checkbox" checked> Exclude detected outliers from statistics</label>
         <hr>
-        <label class="row"><input id="subtractBlank" type="checkbox" checked> Subtract blank background</label>
-        <div class="field"><label>Blank treatment</label><select id="blankSelect"></select></div>
-        <label class="row"><input id="normalize" type="checkbox" checked> Normalize to control = 100% <span class="small">(Medium chosen automatically when available)</span></label>
-        <div class="field"><label>Normalization control</label><select id="controlSelect"></select></div>
+        <div class="notice"><b>Viability normalization</b><br><span class="small">Medium is always 100%. Blank is subtracted as background and never appears on the graph.<br>Viability = (treatment − blank) / (medium − blank) × 100.</span></div>
+        <div id="normalizationStatus" class="notice">Label wells as Medium to calculate viability.</div>
+        <input id="subtractBlank" type="checkbox" checked hidden>
+        <select id="blankSelect" hidden></select>
+        <input id="normalize" type="checkbox" checked hidden>
+        <select id="controlSelect" hidden></select>
         <div class="field"><label>Error bars</label><select id="errorMode"><option>SD</option><option>SEM</option><option>95% CI</option><option>None</option></select></div>
-        <label class="row"><input id="referenceLine" type="checkbox" checked> Show 100% reference line</label>
-        <button class="primary" onclick="recalculate()">Recalculate</button>
+        <label class="row"><input id="referenceLine" type="checkbox" checked> Show Medium reference line at 100%</label>
+        <button class="primary" onclick="recalculate()">Recalculate viability</button>
       </div>
     </section>
 
@@ -144,7 +146,7 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
       <div class="panel-head"><h3>3. Figure style</h3></div>
       <div class="panel-body stack">
         <div class="field"><label>Title</label><input id="plotTitle" type="text" value="CTB assay"></div>
-        <div class="field"><label>Value axis title</label><input id="axisTitle" type="text" value="Relative CTB signal (% of control)"></div>
+        <div class="field"><label>Value axis title</label><input id="axisTitle" type="text" value="Cell viability (% of Medium)"></div>
         <div class="row">
           <div class="field"><label>Font size</label><input id="fontSize" type="number" value="14" min="8" max="32"></div>
           <div class="field"><label>Bar opacity</label><input id="barOpacity" type="number" value="0.9" min="0.1" max="1" step="0.05"></div>
@@ -200,7 +202,6 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
               </details>
               <div class="label-action-stack">
                 <button class="primary" onclick="applyLabelToSelected()">Assign to selected wells</button>
-                <button onclick="setMediumAsControl()">Set Medium = 100%</button>
                 <button onclick="clearLabelFromSelected()">Remove labels from selected</button>
                 <button onclick="activateTab('plotTab')">Open figure</button>
               </div>
@@ -246,7 +247,7 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
       <div id="auditTab" class="tabpage">
         <div class="panel-body stack">
           <div class="audit-grid">
-            <div><h3>Normalization checks</h3><div class="table-wrap" style="max-height:300px"><table><thead><tr><th>Series</th><th>Blank mean</th><th>Control mean</th><th>Control after norm.</th></tr></thead><tbody id="checksBody"></tbody></table></div></div>
+            <div><h3>Medium-normalization checks</h3><div class="table-wrap" style="max-height:300px"><table><thead><tr><th>Series</th><th>Blank mean</th><th>Medium raw mean</th><th>Medium after blank</th><th>Medium viability</th></tr></thead><tbody id="checksBody"></tbody></table></div></div>
             <div><h3>Outliers</h3><div class="table-wrap" style="max-height:300px"><table><thead><tr><th>Series</th><th>Treatment</th><th>Well</th><th>Raw</th><th>Modified Z</th></tr></thead><tbody id="outlierBody"></tbody></table></div></div>
           </div>
         </div>
@@ -428,15 +429,19 @@ function syncTreatments(){
 }
 
 function treatmentLabel(key){const cfg=state.treatments.get(key);return cfg?buildTreatmentLabel(cfg):key;}
+function normalizedTreatmentName(key){return String(key||'').trim().toLowerCase().replace(/\s+/g,' ');}
+function isBlankTreatment(key){const name=normalizedTreatmentName(key);return name==='blank'||name==='background'||name.startsWith('blank ');}
+function isMediumTreatment(key){const name=normalizedTreatmentName(key);return name==='medium'||name==='media'||name.startsWith('medium ');}
+
 function refreshTreatmentSelects(){
   const blank=$('blankSelect'),control=$('controlSelect');
   const prevB=blank.value,prevC=control.value;
   const opts=state.treatmentOrder.map(k=>`<option value="${esc(k)}">${esc(treatmentLabel(k))}</option>`).join('');
   blank.innerHTML=opts;control.innerHTML=opts;
-  const blankGuess=state.treatmentOrder.find(k=>k.trim().toLowerCase()==='blank');
-  const ctrlGuess=state.treatmentOrder.find(k=>['medium','control','vehicle','untreated'].includes(k.trim().toLowerCase()));
-  blank.value=state.treatments.has(prevB)?prevB:(blankGuess||state.treatmentOrder[0]||'');
-  control.value=state.treatments.has(prevC)?prevC:(ctrlGuess||state.treatmentOrder[0]||'');
+  const blankGuess=state.treatmentOrder.find(isBlankTreatment);
+  const mediumGuess=state.treatmentOrder.find(isMediumTreatment);
+  blank.value=blankGuess||'';
+  control.value=mediumGuess||'';
 }
 
 
@@ -621,7 +626,7 @@ function applySettings(settings){
 }
 function persistWorkspace(){
   try{
-    const payload={version:2,series:state.series.map(s=>({id:s.id,fileName:s.fileName,label:s.label,color:s.color,include:s.include,rows:s.rows})),treatments:Object.fromEntries([...state.treatments.entries()]),treatmentOrder:[...state.treatmentOrder],settings:currentSettings(),labelEditor:labelEditor,catalog:drugCatalog,showLabelHeatmap:$('showLabelHeatmap')?.checked||false};
+    const payload={version:3,series:state.series.map(s=>({id:s.id,fileName:s.fileName,label:s.label,color:s.color,include:s.include,rows:s.rows})),treatments:Object.fromEntries([...state.treatments.entries()]),treatmentOrder:[...state.treatmentOrder],settings:currentSettings(),labelEditor:labelEditor,catalog:drugCatalog,showLabelHeatmap:$('showLabelHeatmap')?.checked||false};
     localStorage.setItem('ctb-workspace',JSON.stringify(payload));
   }catch(e){console.warn('Could not save CTB workspace:',e);}
 }
@@ -633,7 +638,10 @@ function restoreWorkspace(){
     state.treatmentOrder=Array.isArray(payload.treatmentOrder)?payload.treatmentOrder:[];
     if(Array.isArray(payload.catalog))payload.catalog.forEach(name=>{const value=String(name||'').trim();if(value&&!drugCatalog.some(x=>x.toLowerCase()===value.toLowerCase()))drugCatalog.push(value);});
     if(Array.isArray(payload.labelEditor)&&payload.labelEditor.length)labelEditor.splice(0,labelEditor.length,...payload.labelEditor.map(c=>({...c})));
-    applySettings(payload.settings||{});
+    const restoredSettings={...(payload.settings||{})};
+    if(!restoredSettings.axisTitle||restoredSettings.axisTitle==='Relative CTB signal (% of control)')restoredSettings.axisTitle='Cell viability (% of Medium)';
+    restoredSettings.subtractBlank=true;restoredSettings.normalize=true;
+    applySettings(restoredSettings);
     if($('showLabelHeatmap'))$('showLabelHeatmap').checked=!!payload.showLabelHeatmap;
     if(state.series.length)syncTreatments();
   }catch(e){console.warn('Could not restore CTB workspace:',e);}
@@ -698,10 +706,6 @@ function recalculate(){
   const threshold=Number($('outlierThreshold').value)||3.5;
   const method=$('outlierMethod').value;
   const exclude=$('excludeOutliers').checked;
-  const subtractBlank=$('subtractBlank').checked;
-  const blankKey=$('blankSelect').value;
-  const doNorm=$('normalize').checked;
-  const controlKey=$('controlSelect').value;
   const errorMode=$('errorMode').value;
   state.processed=[];state.outliers=[];state.checks=[];state.summary=[];
 
@@ -714,26 +718,39 @@ function recalculate(){
       const zs=method==='modified_z'?modifiedZ(vals):vals.map(()=>0);
       idx.forEach((ri,k)=>{rows[ri].modified_z=zs[k];rows[ri].is_outlier=method==='modified_z'&&Math.abs(zs[k])>threshold;rows[ri].included=Number.isFinite(rows[ri].ctb_raw)&&!(exclude&&rows[ri].is_outlier);if(rows[ri].is_outlier)state.outliers.push(rows[ri]);});
     }
-    const blankVals=rows.filter(r=>r.treatment===blankKey&&r.included).map(r=>r.ctb_raw);
-    const blankMean=subtractBlank?mean(blankVals):0;
+
+    const blankVals=rows.filter(r=>isBlankTreatment(r.treatment)&&r.included).map(r=>r.ctb_raw);
+    const measuredBlank=mean(blankVals);
+    const blankMean=Number.isFinite(measuredBlank)?measuredBlank:0;
     rows.forEach(r=>r.corrected=Number.isFinite(r.ctb_raw)?r.ctb_raw-blankMean:NaN);
-    const controlVals=rows.filter(r=>r.treatment===controlKey&&r.included).map(r=>r.corrected);
-    const controlMean=mean(controlVals);
-    rows.forEach(r=>r.relative=doNorm?(Number.isFinite(controlMean)&&controlMean!==0?100*r.corrected/controlMean:NaN):r.corrected);
-    const ctrlAfter=mean(rows.filter(r=>r.treatment===controlKey&&r.included).map(r=>r.relative));
-    state.checks.push({series:s.label,blankMean,controlMean,controlAfter:ctrlAfter});
+
+    const mediumRows=rows.filter(r=>isMediumTreatment(r.treatment)&&r.included);
+    const mediumRawMean=mean(mediumRows.map(r=>r.ctb_raw));
+    const mediumCorrected=Number.isFinite(mediumRawMean)?mediumRawMean-blankMean:NaN;
+    rows.forEach(r=>r.relative=Number.isFinite(r.corrected)&&Number.isFinite(mediumCorrected)&&mediumCorrected!==0?100*r.corrected/mediumCorrected:NaN);
+    const mediumAfter=mean(mediumRows.map(r=>r.relative));
+    state.checks.push({series:s.label,blankMean,mediumRawMean,mediumCorrected,mediumAfter,hasBlank:blankVals.length>0,hasMedium:mediumRows.length>0});
     state.processed.push(...rows);
 
     for(const key of state.treatmentOrder){
-      if(key.trim().toLowerCase()==='blank')continue;
+      if(isBlankTreatment(key))continue;
       const vals=rows.filter(r=>r.treatment===key&&r.included).map(r=>r.relative).filter(Number.isFinite);
       if(!vals.length)continue;
-      const m=mean(vals), sdev=sd(vals), n=vals.length, sem=Number.isFinite(sdev)?sdev/Math.sqrt(n):NaN;
+      const m=mean(vals),sdev=sd(vals),n=vals.length,sem=Number.isFinite(sdev)?sdev/Math.sqrt(n):NaN;
       let err=NaN;if(errorMode==='SD')err=sdev;else if(errorMode==='SEM')err=sem;else if(errorMode==='95% CI')err=Number.isFinite(sem)&&n>1?t975(n-1)*sem:NaN;else err=0;
       state.summary.push({sourceId:s.id,series:s.label,treatment:key,display:treatmentLabel(key),mean:m,sd:sdev,sem,n,error:err,errorMode});
     }
   }
-  renderAudit();renderProcessed();renderStats();renderPlot();persistWorkspace();
+  renderNormalizationStatus();renderAudit();renderProcessed();renderStats();renderPlot();persistWorkspace();
+}
+function renderNormalizationStatus(){
+  const el=$('normalizationStatus');if(!el)return;
+  if(!state.series.some(s=>s.include)){el.textContent='Load a plate and label Medium wells to calculate viability.';el.className='notice';return;}
+  const missing=state.checks.filter(c=>!c.hasMedium||!Number.isFinite(c.mediumCorrected)||c.mediumCorrected===0);
+  if(missing.length){el.textContent='Medium is missing or has no usable signal in: '+missing.map(c=>c.series).join(', ')+'. Label Medium wells before reading percentages.';el.className='notice error';return;}
+  const withoutBlank=state.checks.filter(c=>!c.hasBlank);
+  el.textContent=withoutBlank.length?'Medium is 100%. No Blank wells were found for: '+withoutBlank.map(c=>c.series).join(', ')+'; background was treated as 0.':'Medium is 100%. Blank background was subtracted and excluded from the graph.';
+  el.className=withoutBlank.length?'notice warn':'notice success';
 }
 
 function renderStats(){
@@ -743,17 +760,17 @@ function renderStats(){
 
 function renderPlot(){
   if(typeof Plotly==='undefined'){$('plot').innerHTML='<div class="error notice">Plotly did not load. The work network may be blocking the CDN.</div>';return;}
-  const visibleKeys=state.treatmentOrder.filter(k=>state.treatments.get(k)?.show&&k.trim().toLowerCase()!=='blank');
+  const visibleKeys=state.treatmentOrder.filter(k=>state.treatments.get(k)?.show&&!isBlankTreatment(k));
   const labels=visibleKeys.map(treatmentLabel);
   const traces=[];
   for(const s of state.series.filter(s=>s.include)){
     const map=new Map(state.summary.filter(x=>x.sourceId===s.id).map(x=>[x.treatment,x]));
     const x=visibleKeys.map(k=>map.get(k)?.mean??null), err=visibleKeys.map(k=>map.get(k)?.error??null);
-    traces.push({type:'bar',orientation:'h',name:s.label,y:labels,x,marker:{color:s.color},opacity:Number($('barOpacity').value)||0.9,error_x:{type:'data',array:err,visible:$('errorMode').value!=='None',thickness:1.4,width:4},hovertemplate:`<b>${esc(s.label)}</b><br>%{y}<br>Mean: %{x:.2f}<extra></extra>`});
+    traces.push({type:'bar',orientation:'h',name:s.label,y:labels,x,marker:{color:s.color},opacity:Number($('barOpacity').value)||0.9,error_x:{type:'data',array:err,visible:$('errorMode').value!=='None',thickness:1.4,width:4},hovertemplate:`<b>${esc(s.label)}</b><br>%{y}<br>Viability: %{x:.1f}%<extra></extra>`});
   }
   const lp=$('legendPosition').value;const legend={orientation:lp==='Right'?'v':'h'};let showlegend=lp!=='Hidden';
   if(lp==='Top')Object.assign(legend,{x:0,y:1.12,xanchor:'left',yanchor:'bottom'});if(lp==='Bottom')Object.assign(legend,{x:0,y:-0.16,xanchor:'left',yanchor:'top'});if(lp==='Right')Object.assign(legend,{x:1.02,y:1,xanchor:'left',yanchor:'top'});
-  const shapes=$('referenceLine').checked&&$('normalize').checked?[{type:'line',xref:'x',yref:'paper',x0:100,x1:100,y0:0,y1:1,line:{color:'#667085',dash:'dash',width:1}}]:[];
+  const shapes=$('referenceLine').checked?[{type:'line',xref:'x',yref:'paper',x0:100,x1:100,y0:0,y1:1,line:{color:'#667085',dash:'dash',width:1}}]:[];
   const height=Math.max(650,labels.length*42+180);
   const compact=window.innerWidth<700;
   const layout={title:{text:$('plotTitle').value||'CTB assay',x:0.01,xanchor:'left'},barmode:'group',bargap:0.20,bargroupgap:0.06,height,margin:{l:compact?145:260,r:lp==='Right'?(compact?90:180):25,t:lp==='Top'?100:65,b:85},font:{size:Number($('fontSize').value)||14},xaxis:{title:$('axisTitle').value||'',zeroline:true},yaxis:{categoryorder:'array',categoryarray:labels,autorange:'reversed',automargin:true},legend,showlegend,shapes,plot_bgcolor:'#fff',paper_bgcolor:'#fff'};
@@ -771,7 +788,7 @@ function renderPlate(){
 }
 
 function renderAudit(){
-  $('checksBody').innerHTML=state.checks.map(c=>`<tr><td>${esc(c.series)}</td><td>${fmt(c.blankMean,0)}</td><td>${fmt(c.controlMean,0)}</td><td><span class="pill ${Math.abs(c.controlAfter-100)<1e-6?'ok':''}">${fmt(c.controlAfter,2)}%</span></td></tr>`).join('')||'<tr><td colspan="4" class="small">No analysis yet.</td></tr>';
+  $('checksBody').innerHTML=state.checks.map(c=>`<tr><td>${esc(c.series)}</td><td>${fmt(c.blankMean,0)}</td><td>${fmt(c.mediumRawMean,0)}</td><td>${fmt(c.mediumCorrected,0)}</td><td><span class="pill ${Math.abs(c.mediumAfter-100)<1e-6?'ok':''}">${fmt(c.mediumAfter,2)}%</span></td></tr>`).join('')||'<tr><td colspan="5" class="small">No analysis yet.</td></tr>';
   $('outlierBody').innerHTML=state.outliers.map(r=>`<tr><td>${esc(r.series)}</td><td>${esc(treatmentLabel(r.treatment))}</td><td>${esc(r.well)}</td><td>${fmt(r.ctb_raw,0)}</td><td><span class="pill out">${fmt(r.modified_z,2)}</span></td></tr>`).join('')||'<tr><td colspan="5" class="small">No outliers flagged.</td></tr>';
 }
 function renderProcessed(){
