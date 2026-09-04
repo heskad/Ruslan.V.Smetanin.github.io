@@ -150,7 +150,7 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
             <button onclick="selectAllLabelWells()">Select all</button>
           </div>
           <div class="label-toolbar">
-            <div class="field"><label>Plate to label</label><select id="labelPlateSelect" onchange="renderLabelPlate()"></select></div>
+            <div class="field"><label>Plate to label</label><select id="labelPlateSelect" onchange="labelSelection.clear();renderLabelPlate()"></select></div>
             <button class="primary" onclick="applyLabelToSelected()">Apply label</button>
             <button onclick="clearLabelFromSelected()">Clear labels</button>
           </div>
@@ -353,7 +353,7 @@ async function parseExcelFile(file){
 
 async function handleFiles(files){
   for(const file of [...files]){
-    if(!/\.(xls|xlsx|xlsm)$/i.test(file.name)){setMessage(`Skipped ${file.name}: only .xlsx/.xlsm are supported.`,'warn');continue;}
+    if(!/\.(xls|xlsx|xlsm)$/i.test(file.name)){setMessage(`Skipped ${file.name}: only .xls/.xlsx/.xlsm are supported.`,'warn');continue;}
     try{
       setMessage(`Reading ${file.name}...`,'notice');
       const rows=await parseExcelFile(file);
