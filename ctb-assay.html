@@ -31,7 +31,7 @@ main{padding:18px;max-width:1700px;margin:0 auto}
 .drop{border:2px dashed #9fb1d8;border-radius:12px;padding:24px;text-align:center;background:#f8faff;transition:.15s}.drop.drag{border-color:var(--primary);background:#edf2ff}.drop input{display:none}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.grow{flex:1}.stack{display:flex;flex-direction:column;gap:10px}
 label{font-size:12px;color:#475467;font-weight:600}.field{display:flex;flex-direction:column;gap:5px;min-width:120px}
-input[type=text],input[type=number],select,textarea{width:100%;border:1px solid #cfd8e6;border-radius:8px;padding:8px 9px;background:#fff;color:var(--text)}
+input[type=text],input[type=number],input[type=url],select,textarea{width:100%;border:1px solid #cfd8e6;border-radius:8px;padding:8px 9px;background:#fff;color:var(--text)}
 input[type=color]{width:42px;height:34px;border:none;background:transparent;padding:0}
 input[type=checkbox]{width:17px;height:17px}
 .series-card{border:1px solid var(--line);padding:10px;border-radius:10px;background:#fbfcfe}.series-card .file{font-size:11px;color:var(--muted);word-break:break-all}
@@ -59,14 +59,23 @@ input[type=checkbox]{width:17px;height:17px}
 .label-more summary{cursor:pointer;color:#475467;font-size:12px;font-weight:600}
 .label-new-drug{display:flex;gap:8px;margin-top:10px}
 .label-new-drug input{min-width:0}
-.label-component{background:#fff;padding:8px;border-radius:8px}
+.component.label-component{grid-template-columns:minmax(0,1fr) minmax(92px,.65fr) auto;background:#fff;padding:9px;border-radius:8px;border:1px solid #e5eaf2}
+.label-component .field{min-width:0}
+.label-component .field:first-child{grid-column:1/-1}
+.label-component input,.label-component select{min-width:0;max-width:100%}
+.label-component .remove-comp{align-self:end}
 .label-legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
 .label-legend-item{display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:10px}
 .label-legend-swatch{width:10px;height:10px;border-radius:50%;background:var(--well-color);flex:0 0 auto}
 .label-heatmap{min-height:300px;margin-top:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.layout-copy,.layout-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;margin-top:10px}
+.layout-library{display:grid;gap:9px;margin-top:10px}
+.layout-library .field{min-width:0}
+.layout-note{padding:8px 10px;border-left:3px solid #94a3b8;background:#f1f5f9;color:#475467;font-size:11px;line-height:1.45}
+.plot-shell{overflow:hidden}
 
 @media(max-width:1200px){.label-workflow{grid-template-columns:minmax(0,1fr)}.label-editor-card{position:static}}
-@media(max-width:800px){.label-card-head{display:block}.label-selection-controls{margin-top:10px}.label-new-drug{display:grid;grid-template-columns:1fr}.label-component-head{align-items:flex-start;flex-direction:column}.well-grid{gap:3px}.well-cell{min-height:52px;padding:3px 1px;text-align:center;align-items:center}.well-cell .well-id{font-size:9px}.well-cell .well-value{display:none}.well-cell .well-label{font-size:8px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}}
+@media(max-width:800px){.label-card-head{display:block}.label-selection-controls{margin-top:10px}.label-new-drug,.layout-copy,.layout-row{display:grid;grid-template-columns:1fr}.label-component-head{align-items:flex-start;flex-direction:column}.well-grid{gap:3px}.well-cell{min-height:52px;padding:3px 1px;text-align:center;align-items:center}.well-cell .well-id{font-size:9px}.well-cell .well-value{display:none}.well-cell .well-label{font-size:8px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}}
 
 .label-toolbar{display:grid;grid-template-columns:minmax(170px,1fr) auto auto;gap:8px;align-items:end}
 .label-toolbar .field{min-width:180px}
@@ -78,13 +87,14 @@ input[type=checkbox]{width:17px;height:17px}
 .well-cell.labeled{border-top:4px solid var(--well-color,#15803d);box-shadow:inset 0 0 0 1px var(--well-color,#15803d)}
 .well-cell .well-id{font-size:11px;font-weight:700}
 .well-cell .well-value{font-size:11px;color:var(--muted)}
-.well-cell .well-label{font-size:10px;color:#1e40af;white-space:normal;overflow-wrap:anywhere}
+.well-cell .well-label{font-size:10px;color:#1e40af;white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .well-cell:not(.labeled) .well-label{color:var(--muted);font-style:italic}
+@media(max-width:1450px){.label-workflow{grid-template-columns:minmax(0,1fr)}.label-editor-card{position:static}.well-cell{min-height:48px;padding:5px 2px;text-align:center;align-items:center}.well-cell .well-value,.well-cell .well-label{display:none}}
 @media(max-width:800px){.labeling-intro{grid-template-columns:1fr}.label-toolbar{grid-template-columns:1fr}.label-toolbar .field{min-width:0}}
 
 table{border-collapse:collapse;width:100%;font-size:12px}th,td{padding:7px 8px;border-bottom:1px solid #edf0f5;text-align:left;vertical-align:middle}th{position:sticky;top:0;background:#f8fafc;z-index:2}tr:hover td{background:#fafcff}
 .treatment-name{min-width:220px}.mini{padding:5px 7px;font-size:11px}.pill{display:inline-block;padding:3px 7px;border-radius:999px;font-size:11px;background:#eef2f7;color:#455468}.pill.out{background:#fee2e2;color:#991b1b}.pill.ok{background:#dcfce7;color:#166534}
-#plot{min-height:690px}.plot-shell{padding:8px 12px 16px;overflow-x:auto}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+#plot{min-height:620px}.plot-shell{padding:8px 12px 16px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 .notice{padding:10px 12px;border-radius:9px;background:#eef5ff;color:#1e40af;font-size:12px}.warn{background:#fff7ed;color:#9a3412}.error{background:#fef2f2;color:#991b1b}.success{background:#ecfdf3;color:#166534}
 hr{border:none;border-top:1px solid var(--line);margin:12px 0}
 .dialog{border:none;border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.25);width:min(720px,92vw);max-height:88vh;padding:0}.dialog::backdrop{background:rgba(13,20,35,.45)}.dialog-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}.dialog-body{padding:16px;overflow:auto;max-height:70vh}.dialog-foot{padding:12px 16px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
@@ -99,9 +109,9 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
   <div class="brand"><div style="font-size:28px">🧪</div><div><h1>CTB Analyzer</h1><div class="small">SoftMax Excel → cleaned & normalized figure</div></div><span class="badge">browser-only</span></div>
   <div class="actions">
     <a class="btn" href="ctb-dose-calculator.html">Plate calculator</a>
-    <button onclick="savePreset()">Save preset</button>
-    <button onclick="document.getElementById('presetInput').click()">Load preset</button>
-    <input id="presetInput" type="file" accept=".json" hidden onchange="loadPresetFile(this.files[0])">
+    <button onclick="saveProject()">Save project</button>
+    <button onclick="document.getElementById('projectInput').click()">Load project</button>
+    <input id="projectInput" type="file" accept=".ctb-project.json,.json" hidden onchange="loadProjectFile(this.files[0]);this.value=''">
     <button class="danger" onclick="clearAll()">Clear all</button>
     <a class="btn" href="index.html">← Workbench</a>
   </div>
@@ -147,9 +157,10 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
       <div class="panel-body stack">
         <div class="field"><label>Title</label><input id="plotTitle" type="text" value="CTB assay"></div>
         <div class="field"><label>Value axis title</label><input id="axisTitle" type="text" value="Cell viability (% of Medium)"></div>
+        <div class="field"><label>Plot type</label><select id="plotMode"><option value="dot">Mean ± error with replicates</option><option value="bar">Grouped bars</option></select></div>
         <div class="row">
           <div class="field"><label>Font size</label><input id="fontSize" type="number" value="14" min="8" max="32"></div>
-          <div class="field"><label>Bar opacity</label><input id="barOpacity" type="number" value="0.9" min="0.1" max="1" step="0.05"></div>
+          <div class="field"><label>Series opacity</label><input id="barOpacity" type="number" value="0.92" min="0.1" max="1" step="0.05"></div>
         </div>
         <div class="field"><label>Legend</label><select id="legendPosition"><option>Top</option><option>Right</option><option>Bottom</option><option>Hidden</option></select></div>
         <button onclick="renderPlot()">Apply style</button>
@@ -182,13 +193,28 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
                 <div><div class="small">STEP 1</div><h3>Select wells</h3><div class="small">Click individual wells or drag across several.</div></div>
                 <div class="label-selection-controls"><button onclick="selectAllLabelWells()">Select all</button><button onclick="clearLabelSelection()">Clear selection</button></div>
               </div>
-              <div class="field"><label>Plate</label><select id="labelPlateSelect" onchange="labelSelection.clear();renderLabelPlate()"></select></div>
+              <div class="field"><label>Plate / cell line</label><select id="labelPlateSelect" onchange="labelSelection.clear();renderLabelPlate();refreshLayoutControls()"></select></div>
+              <div id="copyLayoutControls" class="layout-copy" hidden>
+                <div class="field"><label>Copy treatment sequence from</label><select id="copyLayoutSource"></select></div>
+                <button onclick="copyPlateLayout()">Copy to this plate</button>
+              </div>
               <div id="labelSelectionStatus" class="notice">Load a plate to begin labeling.</div>
               <div class="well-grid-wrap"><div id="labelPlateGrid" class="well-grid"></div></div>
               <label class="row"><input id="showLabelHeatmap" type="checkbox"> Show heatmap preview</label>
               <div id="labelHeatmap" class="label-heatmap" hidden></div>
               <div id="labelLegend" class="label-legend"></div>
               <div class="small">Selected wells will receive the same treatment label. Colors show which treatment is assigned.</div>
+              <details class="label-more">
+                <summary>Save, reuse or archive this plate layout</summary>
+                <div class="layout-library">
+                  <div class="layout-row"><input id="layoutName" type="text" placeholder="Layout name, e.g. RCC panel v1"><button onclick="saveCurrentLayout()">Save layout</button></div>
+                  <div class="layout-row"><div class="field"><label>Saved layouts</label><select id="savedLayoutSelect"></select></div><div class="row"><button onclick="applySavedLayout()">Apply</button><button class="danger" onclick="removeSavedLayout()">Delete</button></div></div>
+                  <div class="row"><button onclick="exportSelectedLayout()">Export layout JSON</button><button onclick="document.getElementById('layoutFileInput').click()">Import layout JSON</button></div>
+                  <input id="layoutFileInput" type="file" accept=".ctb-layout.json,.json" hidden onchange="importLayoutFile(this.files[0]);this.value=''">
+                  <div class="layout-row"><input id="layoutUrl" type="url" placeholder="Raw GitHub URL to a layout JSON"><button onclick="loadLayoutFromUrl()">Load from GitHub</button></div>
+                  <div class="layout-note">Layout files contain well labels only, not CTB readings. They are safe to keep in a public repository. Full project files include raw assay values and should be stored privately until publication.</div>
+                </div>
+              </details>
             </section>
             <section class="label-card label-editor-card">
               <div class="small">STEP 2</div>
@@ -259,7 +285,7 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
         </div>
       </div>
     </div>
-    <div class="footer-note">Tip: save a preset after setting names/colors/treatments. Next experiment: upload files → load preset → export figure. Your assay data stays in this browser.</div>
+    <div class="footer-note">Tip: save a reusable plate layout for the next cell line, and save the full project when you need an exact, auditable snapshot of the analysis.</div>
   </section>
 </div>
 </main>
@@ -276,7 +302,7 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
 
 <script>
 'use strict';
-const COLORS=['#F8766D','#00BA38','#619CFF','#C77CFF','#00BFC4','#B79F00','#7CAE00','#FF61C3','#00A9FF','#CD9600'];
+const COLORS=['#0072B2','#D55E00','#009E73','#CC79A7','#E69F00','#56B4E9','#000000','#F0E442'];
 const UNITS=['pM','nM','µM','mM','M','ng/mL','µg/mL','mg/mL','%','custom'];
 const DEFAULT_TREATMENTS=['Blank','Medium','Control','Vehicle','DMSO','Axitinib','BzATP','Cisplatin','Doxorubicin','Gemcitabine','Etoposide','Paclitaxel','Staurosporine'];
 const drugCatalog=[...DEFAULT_TREATMENTS];
@@ -285,6 +311,8 @@ const labelSelection=new Set();
 const labelEditor=[{name:'',conc:null,unit:'µM',customUnit:''}];
 const labelDrag={active:false,mode:'add'};
 const TREATMENT_COLORS=['#2563eb','#dc2626','#059669','#d97706','#7c3aed','#db2777','#0891b2','#65a30d','#ea580c','#4f46e5','#be123c','#0f766e'];
+const LAYOUT_STORAGE_KEY='ctb-layout-library-v1';
+let layoutLibrary=[];
 const state={series:[],treatments:new Map(),treatmentOrder:[],processed:[],summary:[],outliers:[],checks:[],editingTreatment:null,plotData:[],plotLayout:{}};
 const $=id=>document.getElementById(id);
 
@@ -390,7 +418,7 @@ function parseSoftMaxArray(rows, filename){
 }
 
 async function parseExcelFile(file){
-  if(typeof XLSX==='undefined')throw new Error('Excel library did not load. The work network may be blocking the CDN.');
+  if(typeof XLSX==='undefined')throw new Error('The built-in Excel reader did not load. Refresh the page and try again.');
   const buf=await file.arrayBuffer();
   const wb=XLSX.read(buf,{type:'array',cellDates:false});
   const ws=wb.Sheets[wb.SheetNames[0]];
@@ -451,7 +479,7 @@ function renderLabelPlateSelectors(){
   sel.innerHTML=state.series.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.label)+' — '+esc(s.fileName)+'</option>').join('');
   if(state.series.some(s=>s.id===prev))sel.value=prev;
   else if(state.series.length)sel.value=state.series[0].id;
-  renderLabelPlate();
+  renderLabelPlate();refreshLayoutControls();
 }
 function refreshLabelTreatmentSelect(){
   const sel=$('labelTreatmentSelect');if(!sel)return;
@@ -475,7 +503,7 @@ function renderLabelPlate(){
     const labeled=r.treatment!=null&&String(r.treatment).trim()!=='';
     const shownLabel=labeled?treatmentLabel(r.treatment):'Not labeled';
     const color=labeled?treatmentColor(r.treatment):'';
-    cells.push('<button type="button" class="well-cell'+(selected?' selected':'')+(labeled?' labeled':'')+'"'+(color?' style="--well-color:'+color+'"':'')+' data-well="'+esc(r.well)+'" aria-label="'+esc(r.well+' '+shownLabel)+'"><span class="well-id">'+esc(r.well)+'</span><span class="well-value">CTB: '+esc(fmt(r.ctb_raw,0)||'—')+'</span><span class="well-label">'+esc(shownLabel)+'</span></button>');
+    cells.push('<button type="button" class="well-cell'+(selected?' selected':'')+(labeled?' labeled':'')+'"'+(color?' style="--well-color:'+color+'"':'')+' data-well="'+esc(r.well)+'" aria-label="'+esc(r.well+' '+shownLabel)+'" title="'+esc(r.well+' · '+shownLabel+' · CTB: '+(fmt(r.ctb_raw,0)||'—'))+'"><span class="well-id">'+esc(r.well)+'</span><span class="well-value">CTB: '+esc(fmt(r.ctb_raw,0)||'—')+'</span><span class="well-label">'+esc(shownLabel)+'</span></button>');
   }
   host.innerHTML=cells.join('');
   host.querySelectorAll('.well-cell').forEach(cell=>{
@@ -585,7 +613,12 @@ function addTreatmentOption(){
   const existing=drugCatalog.find(x=>x.toLowerCase()===name.toLowerCase());
   if(!existing)drugCatalog.push(name);
   try{localStorage.setItem('ctb-treatment-catalog',JSON.stringify(drugCatalog));}catch(e){}
-  refreshLabelTreatmentSelect();if($('labelTreatmentSelect'))$('labelTreatmentSelect').value=existing||name;loadLabelTreatmentEditor(existing||name);input.value='';
+  const chosen=existing||name;
+  const empty=labelEditor.find(c=>!String(c.name||'').trim());
+  if(labelEditor.length===1)labelEditor.splice(0,1,{name:chosen,conc:null,unit:'µM',customUnit:''});
+  else if(empty)empty.name=chosen;
+  else labelEditor.push({name:chosen,conc:null,unit:'µM',customUnit:''});
+  refreshLabelTreatmentSelect();renderLabelComponentRows();persistWorkspace();input.value='';
   setMessage('Drug option added: '+(existing||name),'success');
 }
 function applyLabelToSelected(){
@@ -616,7 +649,7 @@ function clearLabelFromSelected(){
 }
 
 function currentSettings(){
-  const ids=['outlierMethod','outlierThreshold','excludeOutliers','subtractBlank','blankSelect','normalize','controlSelect','errorMode','referenceLine','plotTitle','axisTitle','fontSize','barOpacity','legendPosition'];
+  const ids=['outlierMethod','outlierThreshold','excludeOutliers','subtractBlank','blankSelect','normalize','controlSelect','errorMode','referenceLine','plotTitle','axisTitle','plotMode','fontSize','barOpacity','legendPosition'];
   const settings={};ids.forEach(id=>{const el=$(id);if(el)settings[id]=el.type==='checkbox'?el.checked:el.value;});return settings;
 }
 function applySettings(settings){
@@ -624,27 +657,121 @@ function applySettings(settings){
   const chk=(id,val)=>{const el=$(id);if(val!==undefined&&el)el.checked=!!val;};
   Object.entries(settings||{}).forEach(([id,val])=>{const el=$(id);if(!el)return;if(el.type==='checkbox')el.checked=!!val;else el.value=val;});
 }
+function getWorkspacePayload(){
+  return {kind:'ctb-project',version:4,exportedAt:new Date().toISOString(),series:state.series.map(s=>({id:s.id,fileName:s.fileName,label:s.label,color:s.color,include:s.include,rows:s.rows})),treatments:Object.fromEntries([...state.treatments.entries()]),treatmentOrder:[...state.treatmentOrder],settings:currentSettings(),labelEditor:labelEditor.map(c=>({...c})),catalog:[...drugCatalog],showLabelHeatmap:$('showLabelHeatmap')?.checked||false};
+}
+function applyWorkspacePayload(payload){
+  if(!payload||!Array.isArray(payload.series))throw new Error('This is not a valid CTB project file.');
+  state.series=payload.series.map(s=>{const id=s.id||uid();return {...s,id,rows:(s.rows||[]).map(r=>({...r,sourceId:id}))};});
+  state.treatments=new Map(Object.entries(payload.treatments||{}).map(([key,value])=>[key,{key,...value}]));
+  state.treatmentOrder=Array.isArray(payload.treatmentOrder)?payload.treatmentOrder:[];
+  if(Array.isArray(payload.catalog))payload.catalog.forEach(name=>{const value=String(name||'').trim();if(value&&!drugCatalog.some(x=>x.toLowerCase()===value.toLowerCase()))drugCatalog.push(value);});
+  if(Array.isArray(payload.labelEditor)&&payload.labelEditor.length)labelEditor.splice(0,labelEditor.length,...payload.labelEditor.map(c=>({...c})));
+  const restoredSettings={plotMode:'dot',...(payload.settings||{})};
+  if(!restoredSettings.axisTitle||restoredSettings.axisTitle==='Relative CTB signal (% of control)')restoredSettings.axisTitle='Cell viability (% of Medium)';
+  restoredSettings.subtractBlank=true;restoredSettings.normalize=true;
+  applySettings(restoredSettings);
+  if($('showLabelHeatmap'))$('showLabelHeatmap').checked=!!payload.showLabelHeatmap;
+  syncTreatments();
+}
 function persistWorkspace(){
-  try{
-    const payload={version:3,series:state.series.map(s=>({id:s.id,fileName:s.fileName,label:s.label,color:s.color,include:s.include,rows:s.rows})),treatments:Object.fromEntries([...state.treatments.entries()]),treatmentOrder:[...state.treatmentOrder],settings:currentSettings(),labelEditor:labelEditor,catalog:drugCatalog,showLabelHeatmap:$('showLabelHeatmap')?.checked||false};
-    localStorage.setItem('ctb-workspace',JSON.stringify(payload));
-  }catch(e){console.warn('Could not save CTB workspace:',e);}
+  try{localStorage.setItem('ctb-workspace',JSON.stringify(getWorkspacePayload()));}
+  catch(e){console.warn('Could not save CTB workspace:',e);setMessage('Browser storage is full. Download the project to keep your work.','warn');}
 }
 function restoreWorkspace(){
+  try{const payload=JSON.parse(localStorage.getItem('ctb-workspace')||'null');if(payload)applyWorkspacePayload(payload);}
+  catch(e){console.warn('Could not restore CTB workspace:',e);}
+}
+function safeFileName(value,fallback='CTB_project'){return String(value||fallback).trim().replace(/[^a-z0-9._-]+/gi,'_').replace(/^_+|_+$/g,'')||fallback;}
+function saveProject(){downloadBlob(JSON.stringify(getWorkspacePayload(),null,2),safeFileName($('plotTitle')?.value)+'.ctb-project.json','application/json');setMessage('Full project downloaded. It includes raw CTB values; archive it privately.','success');}
+async function loadProjectFile(file){
+  if(!file)return;
+  try{const payload=JSON.parse(await file.text());applyWorkspacePayload(payload);labelSelection.clear();refreshAll();setMessage('Project restored: '+file.name,'success');}
+  catch(e){console.error(e);setMessage('Could not load project: '+e.message,'error');}
+}
+
+function loadLayoutLibrary(){
+  try{const saved=JSON.parse(localStorage.getItem(LAYOUT_STORAGE_KEY)||'[]');layoutLibrary=Array.isArray(saved)?saved.filter(x=>x&&x.kind==='ctb-layout'):[];}
+  catch(e){layoutLibrary=[];}
+}
+function persistLayoutLibrary(){
+  try{localStorage.setItem(LAYOUT_STORAGE_KEY,JSON.stringify(layoutLibrary));}
+  catch(e){setMessage('Could not save the layout library in this browser. Export the layout JSON instead.','warn');}
+}
+function makePlateLayout(series,name){
+  if(!series)throw new Error('Load a plate first.');
+  const wells={};series.rows.forEach(r=>{const value=String(r.treatment||'').trim();if(value)wells[r.well]=value;});
+  if(!Object.keys(wells).length)throw new Error('This plate has no treatment labels yet.');
+  const used=[...new Set(Object.values(wells))];
+  const treatments={};used.forEach(key=>{const cfg=state.treatments.get(key);if(cfg)treatments[key]={key,show:cfg.show!==false,manualLabel:cfg.manualLabel||'',components:(cfg.components||[]).map(c=>({...c}))};});
+  return {kind:'ctb-layout',version:1,id:(globalThis.crypto?.randomUUID?.()||uid()),name:String(name||series.label||'Plate layout').trim(),createdAt:new Date().toISOString(),wells,treatments,treatmentOrder:state.treatmentOrder.filter(k=>used.includes(k))};
+}
+function validateLayout(layout){
+  if(!layout||layout.kind!=='ctb-layout'||!layout.wells||typeof layout.wells!=='object')throw new Error('This is not a valid CTB plate-layout file.');
+  const wells=Object.entries(layout.wells).filter(([well,label])=>/^[A-H](?:[1-9]|1[0-2])$/.test(well)&&String(label||'').trim());
+  if(!wells.length)throw new Error('The layout does not contain any labeled wells.');
+  return {...layout,id:layout.id||uid(),name:String(layout.name||'Imported layout'),wells:Object.fromEntries(wells)};
+}
+function renderSavedLayouts(){
+  const sel=$('savedLayoutSelect');if(!sel)return;
+  const prev=sel.value;
+  sel.innerHTML=layoutLibrary.length?layoutLibrary.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+' · '+Object.keys(x.wells||{}).length+' wells</option>').join(''):'<option value="">No saved layouts</option>';
+  if(layoutLibrary.some(x=>x.id===prev))sel.value=prev;
+}
+function refreshLayoutControls(){
+  const target=currentLabelSeries(),box=$('copyLayoutControls'),sel=$('copyLayoutSource');
+  if(box&&sel){const sources=state.series.filter(s=>target&&s.id!==target.id);box.hidden=!target||!sources.length;sel.innerHTML=sources.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.label)+' — '+esc(s.fileName)+'</option>').join('');}
+  if($('layoutName')&&target&&!$('layoutName').value)$('layoutName').placeholder='Layout name, e.g. '+target.label+' v1';
+  renderSavedLayouts();
+}
+function applyLayoutToSeries(layout,series){
+  const clean=validateLayout(layout);if(!series)throw new Error('Choose a target plate first.');
+  series.rows.forEach(r=>r.treatment=clean.wells[r.well]||null);
+  for(const [key,value] of Object.entries(clean.treatments||{}))state.treatments.set(key,{key,...value});
+  const preferred=Array.isArray(clean.treatmentOrder)?clean.treatmentOrder:[];
+  syncTreatments();
+  state.treatmentOrder=[...preferred.filter(k=>state.treatments.has(k)),...state.treatmentOrder.filter(k=>!preferred.includes(k))];
+  labelSelection.clear();refreshAll();persistWorkspace();
+}
+function copyPlateLayout(){
+  const target=currentLabelSeries(),source=state.series.find(s=>s.id===$('copyLayoutSource')?.value);if(!target||!source)return;
+  const existing=target.rows.some(r=>String(r.treatment||'').trim());
+  if(existing&&!confirm('Replace all treatment labels on '+target.label+' with the sequence from '+source.label+'?'))return;
+  try{applyLayoutToSeries(makePlateLayout(source,source.label),target);setMessage('Copied '+source.label+' treatment sequence to '+target.label+'.','success');}
+  catch(e){setMessage(e.message,'warn');}
+}
+function saveCurrentLayout(){
   try{
-    const payload=JSON.parse(localStorage.getItem('ctb-workspace')||'null');if(!payload)return;
-    state.series=(payload.series||[]).map(s=>{const id=s.id||uid();return {...s,id,rows:(s.rows||[]).map(r=>({...r,sourceId:id}))};});
-    state.treatments=new Map(Object.entries(payload.treatments||{}).map(([key,value])=>[key,{key,...value}]));
-    state.treatmentOrder=Array.isArray(payload.treatmentOrder)?payload.treatmentOrder:[];
-    if(Array.isArray(payload.catalog))payload.catalog.forEach(name=>{const value=String(name||'').trim();if(value&&!drugCatalog.some(x=>x.toLowerCase()===value.toLowerCase()))drugCatalog.push(value);});
-    if(Array.isArray(payload.labelEditor)&&payload.labelEditor.length)labelEditor.splice(0,labelEditor.length,...payload.labelEditor.map(c=>({...c})));
-    const restoredSettings={...(payload.settings||{})};
-    if(!restoredSettings.axisTitle||restoredSettings.axisTitle==='Relative CTB signal (% of control)')restoredSettings.axisTitle='Cell viability (% of Medium)';
-    restoredSettings.subtractBlank=true;restoredSettings.normalize=true;
-    applySettings(restoredSettings);
-    if($('showLabelHeatmap'))$('showLabelHeatmap').checked=!!payload.showLabelHeatmap;
-    if(state.series.length)syncTreatments();
-  }catch(e){console.warn('Could not restore CTB workspace:',e);}
+    const layout=makePlateLayout(currentLabelSeries(),$('layoutName')?.value);const same=layoutLibrary.findIndex(x=>x.name.toLowerCase()===layout.name.toLowerCase());
+    if(same>=0){layout.id=layoutLibrary[same].id;layoutLibrary[same]=layout;}else layoutLibrary.push(layout);
+    persistLayoutLibrary();renderSavedLayouts();$('savedLayoutSelect').value=layout.id;if($('layoutName'))$('layoutName').value='';setMessage('Saved reusable layout “'+layout.name+'” in this browser.','success');
+  }catch(e){setMessage(e.message,'warn');}
+}
+function applySavedLayout(){
+  const layout=layoutLibrary.find(x=>x.id===$('savedLayoutSelect')?.value);if(!layout){setMessage('Save or import a layout first.','warn');return;}
+  const target=currentLabelSeries();if(target?.rows.some(r=>String(r.treatment||'').trim())&&!confirm('Replace all treatment labels on '+target.label+' with “'+layout.name+'”?'))return;
+  try{applyLayoutToSeries(layout,target);setMessage('Applied layout “'+layout.name+'” to '+target.label+'.','success');}catch(e){setMessage(e.message,'error');}
+}
+function removeSavedLayout(){
+  const index=layoutLibrary.findIndex(x=>x.id===$('savedLayoutSelect')?.value);if(index<0){setMessage('There is no saved layout to delete.','warn');return;}
+  if(!confirm('Delete the saved layout “'+layoutLibrary[index].name+'” from this browser?'))return;
+  const name=layoutLibrary[index].name;layoutLibrary.splice(index,1);persistLayoutLibrary();renderSavedLayouts();setMessage('Deleted saved layout “'+name+'”.','notice');
+}
+function exportSelectedLayout(){
+  try{const selected=layoutLibrary.find(x=>x.id===$('savedLayoutSelect')?.value);const layout=selected||makePlateLayout(currentLabelSeries(),$('layoutName')?.value);downloadBlob(JSON.stringify(layout,null,2),safeFileName(layout.name,'CTB_layout')+'.ctb-layout.json','application/json');}
+  catch(e){setMessage(e.message,'warn');}
+}
+function addLayoutToLibrary(layout){
+  const clean=validateLayout(layout),same=layoutLibrary.findIndex(x=>x.id===clean.id||x.name.toLowerCase()===clean.name.toLowerCase());
+  if(same>=0)layoutLibrary[same]=clean;else layoutLibrary.push(clean);persistLayoutLibrary();renderSavedLayouts();$('savedLayoutSelect').value=clean.id;return clean;
+}
+async function importLayoutFile(file){
+  if(!file)return;try{const layout=addLayoutToLibrary(JSON.parse(await file.text()));setMessage('Imported layout “'+layout.name+'”. Choose Apply when the target plate is selected.','success');}catch(e){setMessage('Could not import layout: '+e.message,'error');}
+}
+async function loadLayoutFromUrl(){
+  const url=String($('layoutUrl')?.value||'').trim();if(!/^https:\/\//i.test(url)){setMessage('Paste an HTTPS raw GitHub URL to a layout JSON file.','warn');return;}
+  try{const response=await fetch(url,{cache:'no-store'});if(!response.ok)throw new Error('GitHub returned HTTP '+response.status);const layout=addLayoutToLibrary(await response.json());setMessage('Loaded layout “'+layout.name+'” from GitHub.','success');}
+  catch(e){setMessage('Could not load layout from GitHub: '+e.message,'error');}
 }
 
 function renderSeriesList(){
@@ -712,7 +839,7 @@ function recalculate(){
   for(const s of includedSeries){
     const rows=s.rows.map(r=>({...r,series:s.label,modified_z:0,is_outlier:false,included:false,corrected:NaN,relative:NaN}));
     const byTreatment=new Map();
-    rows.forEach((r,i)=>{if(!byTreatment.has(r.treatment))byTreatment.set(r.treatment,[]);byTreatment.get(r.treatment).push(i);});
+    rows.forEach((r,i)=>{if(r.treatment==null||!String(r.treatment).trim())return;if(!byTreatment.has(r.treatment))byTreatment.set(r.treatment,[]);byTreatment.get(r.treatment).push(i);});
     for(const [t,idx] of byTreatment){
       const vals=idx.map(i=>rows[i].ctb_raw);
       const zs=method==='modified_z'?modifiedZ(vals):vals.map(()=>0);
@@ -754,26 +881,47 @@ function renderNormalizationStatus(){
 }
 
 function renderStats(){
-  const included=state.processed.filter(r=>r.included).length;const flagged=state.outliers.length;const shown=state.treatmentOrder.filter(k=>state.treatments.get(k)?.show&&k.trim().toLowerCase()!=='blank').length;
+  const included=state.processed.filter(r=>r.included).length;const flagged=state.outliers.length;const shown=state.treatmentOrder.filter(k=>state.treatments.get(k)?.show&&!isBlankTreatment(k)).length;
   $('stats').innerHTML=`<div class="stat"><div class="v">${state.series.filter(s=>s.include).length}</div><div class="k">series</div></div><div class="stat"><div class="v">${included}</div><div class="k">wells used</div></div><div class="stat"><div class="v">${flagged}</div><div class="k">flagged outliers</div></div><div class="stat"><div class="v">${shown}</div><div class="k">treatments shown</div></div>`;
 }
 
 function renderPlot(){
-  if(typeof Plotly==='undefined'){$('plot').innerHTML='<div class="error notice">Plotly did not load. The work network may be blocking the CDN.</div>';return;}
+  if(typeof Plotly==='undefined'){$('plot').innerHTML='<div class="error notice">The built-in chart library did not load. Refresh the page and try again.</div>';return;}
   const visibleKeys=state.treatmentOrder.filter(k=>state.treatments.get(k)?.show&&!isBlankTreatment(k));
   const labels=visibleKeys.map(treatmentLabel);
-  const traces=[];
-  for(const s of state.series.filter(s=>s.include)){
-    const map=new Map(state.summary.filter(x=>x.sourceId===s.id).map(x=>[x.treatment,x]));
-    const x=visibleKeys.map(k=>map.get(k)?.mean??null), err=visibleKeys.map(k=>map.get(k)?.error??null);
-    traces.push({type:'bar',orientation:'h',name:s.label,y:labels,x,marker:{color:s.color},opacity:Number($('barOpacity').value)||0.9,error_x:{type:'data',array:err,visible:$('errorMode').value!=='None',thickness:1.4,width:4},hovertemplate:`<b>${esc(s.label)}</b><br>%{y}<br>Viability: %{x:.1f}%<extra></extra>`});
-  }
+  const wrappedLabels=labels.map(x=>esc(x).replace(/\s+\+\s+/g,'<br>+ '));
+  const series=state.series.filter(s=>s.include),traces=[],mode=$('plotMode')?.value||'dot';
+  const opacity=Math.min(1,Math.max(.1,Number($('barOpacity').value)||.92));
+  const errorVisible=$('errorMode').value!=='None';
+  const allValues=[];
+  series.forEach((s,seriesIndex)=>{
+    const summaryMap=new Map(state.summary.filter(x=>x.sourceId===s.id).map(x=>[x.treatment,x]));
+    const means=visibleKeys.map(k=>summaryMap.get(k)?.mean??null),errors=visibleKeys.map(k=>summaryMap.get(k)?.error??null);
+    means.forEach((value,i)=>{if(Number.isFinite(value)){allValues.push(value);if(Number.isFinite(errors[i]))allValues.push(value+errors[i]);}});
+    if(mode==='bar'){
+      traces.push({type:'bar',orientation:'h',name:s.label,y:wrappedLabels,x:means,marker:{color:s.color,line:{color:'#fff',width:.6}},opacity,error_x:{type:'data',array:errors,visible:errorVisible,color:'#344054',thickness:1.3,width:4},customdata:visibleKeys.map(k=>summaryMap.get(k)?.n??0),hovertemplate:'<b>'+esc(s.label)+'</b><br>%{y}<br>Mean: %{x:.1f}%<br>n = %{customdata}<extra></extra>'});
+      return;
+    }
+    const spread=Math.min(.52,.16*Math.max(1,series.length)),offset=series.length===1?0:(seriesIndex-(series.length-1)/2)*(spread/(series.length-1));
+    const repX=[],repY=[],repData=[];
+    visibleKeys.forEach((key,treatmentIndex)=>{
+      const rows=state.processed.filter(r=>r.sourceId===s.id&&r.treatment===key&&r.included&&Number.isFinite(r.relative));
+      rows.forEach((row,repIndex)=>{const jitter=((repIndex%5)-Math.min(rows.length-1,4)/2)*.018;repX.push(row.relative);repY.push(treatmentIndex+offset+jitter);repData.push([row.well,treatmentLabel(key),s.label]);allValues.push(row.relative);});
+    });
+    traces.push({type:'scatter',mode:'markers',name:s.label+' replicates',showlegend:false,x:repX,y:repY,customdata:repData,marker:{color:s.color,size:7,opacity:.28,line:{color:'#fff',width:.5}},hovertemplate:'<b>%{customdata[2]}</b><br>%{customdata[1]}<br>Well %{customdata[0]}: %{x:.1f}%<extra></extra>'});
+    traces.push({type:'scatter',mode:'markers',name:s.label,x:means,y:visibleKeys.map((_,i)=>i+offset),customdata:visibleKeys.map(k=>[treatmentLabel(k),summaryMap.get(k)?.n??0]),marker:{color:s.color,size:12,opacity,line:{color:'#fff',width:1.5}},error_x:{type:'data',array:errors,visible:errorVisible,color:s.color,thickness:2,width:5},hovertemplate:'<b>'+esc(s.label)+'</b><br>%{customdata[0]}<br>Mean: %{x:.1f}%<br>n = %{customdata[1]}<extra></extra>'});
+  });
   const lp=$('legendPosition').value;const legend={orientation:lp==='Right'?'v':'h'};let showlegend=lp!=='Hidden';
   if(lp==='Top')Object.assign(legend,{x:0,y:1.12,xanchor:'left',yanchor:'bottom'});if(lp==='Bottom')Object.assign(legend,{x:0,y:-0.16,xanchor:'left',yanchor:'top'});if(lp==='Right')Object.assign(legend,{x:1.02,y:1,xanchor:'left',yanchor:'top'});
-  const shapes=$('referenceLine').checked?[{type:'line',xref:'x',yref:'paper',x0:100,x1:100,y0:0,y1:1,line:{color:'#667085',dash:'dash',width:1}}]:[];
-  const height=Math.max(650,labels.length*42+180);
+  const showReference=$('referenceLine').checked;
+  const shapes=showReference?[{type:'line',xref:'x',yref:'paper',x0:100,x1:100,y0:0,y1:1,line:{color:'#667085',dash:'dash',width:1.4}}]:[];
+  const annotations=showReference?[{xref:'x',yref:'paper',x:100,y:1.025,text:'Medium = 100%',showarrow:false,xanchor:'right',font:{size:11,color:'#475467'},bgcolor:'rgba(255,255,255,.8)'}]:[];
+  const finite=allValues.filter(Number.isFinite),dataMin=finite.length?Math.min(...finite):0,dataMax=finite.length?Math.max(...finite):110;
+  const span=Math.max(20,dataMax-Math.min(0,dataMin));const xRange=[Math.min(0,dataMin-span*.06),Math.max(115,dataMax+span*.09)];
+  const height=Math.max(620,labels.length*(mode==='dot'?48:44)+180);
   const compact=window.innerWidth<700;
-  const layout={title:{text:$('plotTitle').value||'CTB assay',x:0.01,xanchor:'left'},barmode:'group',bargap:0.20,bargroupgap:0.06,height,margin:{l:compact?145:260,r:lp==='Right'?(compact?90:180):25,t:lp==='Top'?100:65,b:85},font:{size:Number($('fontSize').value)||14},xaxis:{title:$('axisTitle').value||'',zeroline:true},yaxis:{categoryorder:'array',categoryarray:labels,autorange:'reversed',automargin:true},legend,showlegend,shapes,plot_bgcolor:'#fff',paper_bgcolor:'#fff'};
+  const yaxis=mode==='dot'?{tickmode:'array',tickvals:visibleKeys.map((_,i)=>i),ticktext:wrappedLabels,range:[labels.length-.55,-.55],automargin:true,showgrid:false,zeroline:false}:{categoryorder:'array',categoryarray:wrappedLabels,autorange:'reversed',automargin:true,showgrid:false};
+  const layout={title:{text:esc($('plotTitle').value||'CTB assay'),x:0.01,xanchor:'left',font:{size:(Number($('fontSize').value)||14)+6}},barmode:'group',bargap:.24,bargroupgap:.08,height,margin:{l:compact?145:270,r:lp==='Right'?(compact?90:190):35,t:lp==='Top'?110:78,b:88},font:{family:'Arial, sans-serif',size:Number($('fontSize').value)||14,color:'#172033'},xaxis:{title:{text:esc($('axisTitle').value||''),standoff:14},range:xRange,showline:true,linecolor:'#344054',linewidth:1,ticks:'outside',tickcolor:'#344054',gridcolor:'#e4e7ec',gridwidth:1,zeroline:false},yaxis,legend,showlegend,shapes,annotations,hoverlabel:{font:{family:'Arial, sans-serif'}},plot_bgcolor:'#fff',paper_bgcolor:'#fff'};
   state.plotData=traces;state.plotLayout=layout;Plotly.react('plot',traces,layout,{responsive:true,displaylogo:false,modeBarButtonsToRemove:['lasso2d','select2d']});persistWorkspace();
 }
 
@@ -796,24 +944,27 @@ function renderProcessed(){
   $('processedBody').innerHTML=state.processed.slice(0,800).map(r=>'<tr>'+cols.map(c=>`<td>${esc(Number.isFinite(r[c])?fmt(r[c],c==='ctb_raw'||c==='corrected'?0:3):(r[c]??''))}</td>`).join('')+'</tr>').join('');
 }
 
-function refreshAll(){renderSeriesList();renderTreatmentTable();refreshTreatmentSelects();refreshLabelTreatmentSelect();renderPlateSelectors();renderLabelPlateSelectors();renderLabelComponentRows();recalculate();}
-function clearAll(){if(state.series.length&&!confirm('Clear all loaded plates and settings?'))return;labelSelection.clear();try{localStorage.removeItem('ctb-workspace');}catch(e){}state.series=[];state.treatments.clear();state.treatmentOrder=[];state.processed=[];state.summary=[];state.outliers=[];state.checks=[];refreshAll();setMessage('All data cleared.','notice');}
+function refreshAll(){renderSeriesList();renderTreatmentTable();refreshTreatmentSelects();refreshLabelTreatmentSelect();renderPlateSelectors();renderLabelPlateSelectors();refreshLayoutControls();renderLabelComponentRows();recalculate();}
+function clearAll(){
+  if(state.series.length&&!confirm('Clear all loaded plates and assay data? Your saved layout library will be kept.'))return;
+  labelSelection.clear();labelEditor.splice(0,labelEditor.length,{name:'',conc:null,unit:'µM',customUnit:''});state.series=[];state.treatments.clear();state.treatmentOrder=[];state.processed=[];state.summary=[];state.outliers=[];state.checks=[];refreshAll();setMessage('Loaded assay data cleared. Saved layouts were kept.','notice');
+}
 
 function csvString(rows,cols){const q=v=>{const s=String(v??'');return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;};return [cols.map(q).join(','),...rows.map(r=>cols.map(c=>q(r[c])).join(','))].join('\n');}
 function downloadBlob(content,name,type='text/plain;charset=utf-8'){const b=content instanceof Blob?content:new Blob([content],{type});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
 function downloadSummaryCSV(){downloadBlob(csvString(state.summary,['series','treatment','display','mean','sd','sem','n','error','errorMode']),'CTB_summary.csv','text/csv;charset=utf-8');}
 function downloadProcessedCSV(){downloadBlob(csvString(state.processed,['series','source_file','well','treatment','ctb_raw','modified_z','is_outlier','included','corrected','relative']),'CTB_processed.csv','text/csv;charset=utf-8');}
 function downloadSummaryXLSX(){if(typeof XLSX==='undefined')return alert('Excel library not loaded.');const ws=XLSX.utils.json_to_sheet(state.summary);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Summary');XLSX.writeFile(wb,'CTB_summary.xlsx');}
-function exportImage(format){if(!state.plotData.length)return alert('Build a plot first.');Plotly.downloadImage('plot',{format,filename:'CTB_figure',width:1600,height:1100,scale:format==='png'?2:1});}
+function exportImage(format){if(!state.plotData.length)return alert('Build a plot first.');Plotly.downloadImage('plot',{format,filename:'CTB_figure',width:1800,height:Math.max(900,state.plotLayout.height||900),scale:format==='png'?2:1});}
 function exportPlotHTML(){
   const data=JSON.stringify(state.plotData).replace(/</g,'\\u003c'),layout=JSON.stringify(state.plotLayout).replace(/</g,'\\u003c');
   const h=`<!doctype html><meta charset="utf-8"><title>CTB figure</title><script src="https://cdn.plot.ly/plotly-3.6.0.min.js"><\/script><div id="p" style="width:100%;min-height:700px"></div><script>Plotly.newPlot('p',${data},${layout},{responsive:true,displaylogo:false});<\/script>`;
   downloadBlob(h,'CTB_figure_interactive.html','text/html;charset=utf-8');
 }
-async function printPlotPDF(){if(!state.plotData.length)return alert('Build a plot first.');const w=window.open('','_blank');if(!w)return alert('Popup blocked. Allow popups for this page and try again.');try{const uri=await Plotly.toImage('plot',{format:'svg',width:1600,height:1100});w.document.write(`<html><head><title>CTB figure</title><style>body{margin:0}img{width:100%;height:auto}@page{size:landscape;margin:8mm}</style></head><body><img src="${uri}"><script>setTimeout(()=>window.print(),500)<\/script></body></html>`);w.document.close();}catch(e){w.close();alert('Could not prepare PDF/print view: '+e.message);}}
+async function printPlotPDF(){if(!state.plotData.length)return alert('Build a plot first.');const w=window.open('','_blank');if(!w)return alert('Popup blocked. Allow popups for this page and try again.');try{const uri=await Plotly.toImage('plot',{format:'svg',width:1800,height:Math.max(900,state.plotLayout.height||900)});w.document.write(`<html><head><title>CTB figure</title><style>body{margin:0}img{width:100%;height:auto}@page{size:landscape;margin:8mm}</style></head><body><img src="${uri}"><script>setTimeout(()=>window.print(),500)<\/script></body></html>`);w.document.close();}catch(e){w.close();alert('Could not prepare PDF/print view: '+e.message);}}
 
 function getPreset(){
-  return {version:1,series:state.series.map(s=>({fileName:s.fileName,label:s.label,color:s.color,include:s.include})),treatmentOrder:[...state.treatmentOrder],treatments:Object.fromEntries([...state.treatments.entries()].map(([k,v])=>[k,{show:v.show,manualLabel:v.manualLabel,components:v.components}])),settings:{outlierMethod:$('outlierMethod').value,outlierThreshold:$('outlierThreshold').value,excludeOutliers:$('excludeOutliers').checked,subtractBlank:$('subtractBlank').checked,blank:$('blankSelect').value,normalize:$('normalize').checked,control:$('controlSelect').value,errorMode:$('errorMode').value,referenceLine:$('referenceLine').checked,plotTitle:$('plotTitle').value,axisTitle:$('axisTitle').value,fontSize:$('fontSize').value,barOpacity:$('barOpacity').value,legendPosition:$('legendPosition').value}};
+  return {version:1,series:state.series.map(s=>({fileName:s.fileName,label:s.label,color:s.color,include:s.include})),treatmentOrder:[...state.treatmentOrder],treatments:Object.fromEntries([...state.treatments.entries()].map(([k,v])=>[k,{show:v.show,manualLabel:v.manualLabel,components:v.components}])),settings:{outlierMethod:$('outlierMethod').value,outlierThreshold:$('outlierThreshold').value,excludeOutliers:$('excludeOutliers').checked,subtractBlank:$('subtractBlank').checked,blank:$('blankSelect').value,normalize:$('normalize').checked,control:$('controlSelect').value,errorMode:$('errorMode').value,referenceLine:$('referenceLine').checked,plotTitle:$('plotTitle').value,axisTitle:$('axisTitle').value,plotMode:$('plotMode').value,fontSize:$('fontSize').value,barOpacity:$('barOpacity').value,legendPosition:$('legendPosition').value}};
 }
 function savePreset(){downloadBlob(JSON.stringify(getPreset(),null,2),'CTB_preset.json','application/json');}
 async function loadPresetFile(file){if(!file)return;try{const p=JSON.parse(await file.text());applyPreset(p);setMessage('Preset loaded.','success');}catch(e){alert('Could not load preset: '+e.message);}}
@@ -822,7 +973,7 @@ function applyPreset(p){
   if(p.treatments)for(const [k,v] of Object.entries(p.treatments)){const c=state.treatments.get(k);if(c){c.show=v.show!==false;c.manualLabel=v.manualLabel||'';c.components=v.components||c.components;}}
   if(Array.isArray(p.treatmentOrder)){const existing=p.treatmentOrder.filter(k=>state.treatments.has(k));const rest=state.treatmentOrder.filter(k=>!existing.includes(k));state.treatmentOrder=[...existing,...rest];}
   const s=p.settings||{};const set=(id,val)=>{if(val!==undefined&&$(id))$(id).value=val;};const chk=(id,val)=>{if(val!==undefined&&$(id))$(id).checked=!!val;};
-  set('outlierMethod',s.outlierMethod);set('outlierThreshold',s.outlierThreshold);chk('excludeOutliers',s.excludeOutliers);chk('subtractBlank',s.subtractBlank);chk('normalize',s.normalize);set('errorMode',s.errorMode);chk('referenceLine',s.referenceLine);set('plotTitle',s.plotTitle);set('axisTitle',s.axisTitle);set('fontSize',s.fontSize);set('barOpacity',s.barOpacity);set('legendPosition',s.legendPosition);
+  set('outlierMethod',s.outlierMethod);set('outlierThreshold',s.outlierThreshold);chk('excludeOutliers',s.excludeOutliers);chk('subtractBlank',s.subtractBlank);chk('normalize',s.normalize);set('errorMode',s.errorMode);chk('referenceLine',s.referenceLine);set('plotTitle',s.plotTitle);set('axisTitle',s.axisTitle);set('plotMode',s.plotMode);set('fontSize',s.fontSize);set('barOpacity',s.barOpacity);set('legendPosition',s.legendPosition);
   renderSeriesList();renderTreatmentTable();refreshTreatmentSelects();if(s.blank&&state.treatments.has(s.blank))$('blankSelect').value=s.blank;if(s.control&&state.treatments.has(s.control))$('controlSelect').value=s.control;recalculate();
 }
 
@@ -834,12 +985,12 @@ function setupUpload(){
 }
 function setupAutoUpdate(){
   ['outlierMethod','outlierThreshold','excludeOutliers','subtractBlank','blankSelect','normalize','controlSelect','errorMode','referenceLine'].forEach(id=>$(id).addEventListener('change',recalculate));
-  ['plotTitle','axisTitle','fontSize','barOpacity','legendPosition'].forEach(id=>$(id).addEventListener('change',()=>{renderPlot();persistWorkspace();}));
+  ['plotTitle','axisTitle','plotMode','fontSize','barOpacity','legendPosition'].forEach(id=>$(id).addEventListener('change',()=>{renderPlot();persistWorkspace();}));
   $('showLabelHeatmap')?.addEventListener('change',toggleLabelHeatmap);
 }
 
 document.addEventListener('pointerup',endWellSelection);
-restoreWorkspace();setupTabs();setupUpload();setupAutoUpdate();refreshAll();
+loadLayoutLibrary();restoreWorkspace();setupTabs();setupUpload();setupAutoUpdate();refreshAll();
 </script>
 </body>
 </html>
