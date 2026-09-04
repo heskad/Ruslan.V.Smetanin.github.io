@@ -46,7 +46,7 @@ input[type=checkbox]{width:17px;height:17px}
 .label-toolbar .field{min-width:180px}
 .well-grid-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px;padding:10px;background:#f8fafc}
 .well-grid{display:grid;grid-template-columns:repeat(12,minmax(64px,1fr));gap:6px;min-width:840px}
-.well-cell{min-height:72px;padding:7px 5px;border:1px solid #cfd8e6;border-radius:8px;background:#fff;color:var(--text);cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:3px}
+.well-cell{touch-action:none;min-height:72px;padding:7px 5px;border:1px solid #cfd8e6;border-radius:8px;background:#fff;color:var(--text);cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:3px}
 .well-cell:hover{border-color:var(--primary);background:#f3f6ff}
 .well-cell.selected{border-color:var(--primary);box-shadow:0 0 0 2px rgba(53,89,224,.25);background:#edf2ff}
 .well-cell.labeled{border-top:4px solid #15803d}
@@ -145,7 +145,7 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
           <div class="labeling-intro">
             <div>
               <h3>1. Label wells</h3>
-              <div class="small">Select one or several wells, choose a treatment, then apply the label. Labels are used immediately for grouping and the figure.</div>
+              <div class="small">Click or drag across wells to select several at once. Build a single drug or a combination with a concentration for each component, then apply the label.</div>
             </div>
             <button onclick="selectAllLabelWells()">Select all</button>
           </div>
@@ -155,16 +155,18 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
             <button onclick="clearLabelFromSelected()">Clear labels</button>
           </div>
           <div class="row">
-            <div class="field grow"><label>Treatment for selected wells</label><select id="labelTreatmentSelect"></select></div>
-            <button onclick="addTreatmentOption()">+ Add new treatment</button>
+            <div class="field grow"><label>Quick treatment / saved label</label><select id="labelTreatmentSelect" onchange="loadLabelTreatmentEditor(this.value)"></select></div>
+            <button onclick="addLabelComponent()">+ Add component</button>
+            <button onclick="addTreatmentOption()">+ Add drug</button>
             <button onclick="activateTab('plotTab')">Open figure</button>
           </div>
+          <div id="labelComponentRows" class="label-components"></div>
           <div class="row">
-            <div class="field grow"><label>New medicine / treatment name</label><input id="newTreatmentName" type="text" placeholder="e.g. Cisplatin"></div>
+            <div class="field grow"><label>New medicine name</label><input id="newTreatmentName" type="text" placeholder="e.g. Cabozantinib"></div>
           </div>
           <div id="labelSelectionStatus" class="notice">Load a plate to begin labeling.</div>
           <div class="well-grid-wrap"><div id="labelPlateGrid" class="well-grid"></div></div>
-          <div class="small">Tip: click a well to select it; click again to remove it from the selection. A label such as “Blank”, “Medium” or “Control” can be used by the analysis controls on the left.</div>
+          <div class="small">Tip: click a well to toggle it, or drag across the grid to select several. Shift-click adds to the current selection. A label such as “Blank”, “Medium” or “Control” can be used by the analysis controls on the left.</div>
         </div>
       </div>
 
@@ -238,6 +240,8 @@ const DEFAULT_TREATMENTS=['Blank','Medium','Control','Vehicle','DMSO','Axitinib'
 const drugCatalog=[...DEFAULT_TREATMENTS];
 try{const saved=JSON.parse(localStorage.getItem('ctb-treatment-catalog')||'[]');if(Array.isArray(saved))saved.forEach(x=>{const name=String(x||'').trim();if(name&&!drugCatalog.some(v=>v.toLowerCase()===name.toLowerCase()))drugCatalog.push(name);});}catch(e){}
 const labelSelection=new Set();
+const labelEditor=[{name:'',conc:null,unit:'µM',customUnit:''}];
+const labelDrag={active:false,mode:'add'};
 const state={series:[],treatments:new Map(),treatmentOrder:[],processed:[],summary:[],outliers:[],checks:[],editingTreatment:null,plotData:[],plotLayout:{}};
 const $=id=>document.getElementById(id);
 
@@ -423,39 +427,100 @@ function renderLabelPlate(){
     const selected=labelSelection.has(r.well);
     const labeled=r.treatment!=null&&String(r.treatment).trim()!=='';
     const shownLabel=labeled?treatmentLabel(r.treatment):'Not labeled';
-    cells.push('<button type="button" class="well-cell'+(selected?' selected':'')+(labeled?' labeled':'')+'" aria-label="'+esc(r.well+' '+shownLabel)+'" onclick="toggleLabelWell('+JSON.stringify(r.well)+')"><span class="well-id">'+esc(r.well)+'</span><span class="well-value">CTB: '+esc(fmt(r.ctb_raw,0)||'—')+'</span><span class="well-label">'+esc(shownLabel)+'</span></button>');
+    cells.push('<button type="button" class="well-cell'+(selected?' selected':'')+(labeled?' labeled':'')+'" data-well="'+esc(r.well)+'" aria-label="'+esc(r.well+' '+shownLabel)+'"><span class="well-id">'+esc(r.well)+'</span><span class="well-value">CTB: '+esc(fmt(r.ctb_raw,0)||'—')+'</span><span class="well-label">'+esc(shownLabel)+'</span></button>');
   }
   host.innerHTML=cells.join('');
+  host.querySelectorAll('.well-cell').forEach(cell=>{
+    cell.addEventListener('pointerdown',event=>beginWellSelection(event,cell.dataset.well));
+    cell.addEventListener('pointerenter',()=>continueWellSelection(cell.dataset.well));
+  });
+  updateLabelSelectionView();
+}
+function updateLabelSelectionView(){
+  const host=$('labelPlateGrid'),status=$('labelSelectionStatus'),s=currentLabelSeries();
+  if(!host||!status||!s)return;
+  host.querySelectorAll('.well-cell').forEach(cell=>cell.classList.toggle('selected',labelSelection.has(cell.dataset.well)));
   const labeledCount=s.rows.filter(r=>r.treatment!=null&&String(r.treatment).trim()!=='').length;
   status.textContent=labelSelection.size+' selected · '+labeledCount+' labeled wells · '+s.label;
   status.className=labelSelection.size?'notice success':'notice';
 }
-function toggleLabelWell(well){
-  if(labelSelection.has(well))labelSelection.delete(well);else labelSelection.add(well);
-  renderLabelPlate();
+function beginWellSelection(event,well){
+  if(event.button!==undefined&&event.button!==0)return;
+  event.preventDefault();
+  labelDrag.active=true;
+  labelDrag.mode=labelSelection.has(well)&&!event.shiftKey?'remove':'add';
+  applyWellSelection(well);
+}
+function continueWellSelection(well){
+  if(labelDrag.active)applyWellSelection(well);
+}
+function endWellSelection(){labelDrag.active=false;}
+function applyWellSelection(well){
+  if(labelDrag.mode==='remove')labelSelection.delete(well);else labelSelection.add(well);
+  updateLabelSelectionView();
 }
 function selectAllLabelWells(){
   const s=currentLabelSeries();if(!s)return;
-  s.rows.forEach(r=>labelSelection.add(r.well));renderLabelPlate();
+  s.rows.forEach(r=>labelSelection.add(r.well));updateLabelSelectionView();
 }
-function clearLabelSelection(){labelSelection.clear();renderLabelPlate();}
+function clearLabelSelection(){labelSelection.clear();updateLabelSelectionView();}
+function componentOptions(selected){
+  const keys=[...drugCatalog,...state.treatmentOrder];
+  if(selected&&!keys.some(k=>k.toLowerCase()===String(selected).toLowerCase()))keys.push(selected);
+  return [...new Set(keys)].map(k=>'<option value="'+esc(k)+'"'+(k===selected?' selected':'')+'>'+esc(k)+'</option>').join('');
+}
+function renderLabelComponentRows(){
+  const host=$('labelComponentRows');if(!host)return;
+  host.innerHTML=labelEditor.map((c,i)=>{
+    const units=UNITS.map(u=>'<option value="'+esc(u)+'"'+(u===c.unit?' selected':'')+'>'+esc(u)+'</option>').join('');
+    const custom=c.unit==='custom'?'<input type="text" placeholder="custom unit" value="'+esc(c.customUnit||'')+'" oninput="updateLabelComponent('+i+',\'customUnit\',this.value)">':'';
+    return '<div class="component label-component"><div class="field"><label>Drug '+(i+1)+'</label><select onchange="updateLabelComponent('+i+',\'name\',this.value)"><option value="">Choose drug…</option>'+componentOptions(c.name||'')+'</select></div><div class="field"><label>Concentration</label><input type="number" step="any" value="'+(c.conc??'')+'" placeholder="optional" oninput="updateLabelComponent('+i+',\'conc\',this.value)"></div><div class="field"><label>Unit</label><select onchange="updateLabelComponent('+i+',\'unit\',this.value);renderLabelComponentRows()">'+units+'</select>'+custom+'</div><button type="button" class="mini danger remove-comp" onclick="removeLabelComponent('+i+')">✕</button></div>';
+  }).join('');
+}
+function updateLabelComponent(i,field,value){
+  const c=labelEditor[i];if(!c)return;
+  c[field]=field==='conc'?(value===''?null:Number(value)):value;
+}
+function addLabelComponent(name=''){
+  labelEditor.push({name,conc:null,unit:'µM',customUnit:''});renderLabelComponentRows();
+}
+function removeLabelComponent(i){
+  labelEditor.splice(i,1);if(!labelEditor.length)labelEditor.push({name:'',conc:null,unit:'µM',customUnit:''});renderLabelComponentRows();
+}
+function loadLabelTreatmentEditor(value){
+  if(!value)return;
+  const cfg=state.treatments.get(value);
+  const parsed=cfg?.components?.length?cfg.components:parseExistingTreatment(value);
+  labelEditor.splice(0,labelEditor.length,...(parsed.length?parsed.map(c=>({...c})): [{name:value,conc:null,unit:'µM',customUnit:''}]));
+  renderLabelComponentRows();
+}
+function buildLabelFromEditor(){
+  return labelEditor.map(c=>{
+    const name=String(c.name||'').trim();if(!name)return '';
+    if(c.conc===null||c.conc===''||!Number.isFinite(Number(c.conc)))return name;
+    const unit=c.unit==='custom'?(c.customUnit||'').trim():c.unit;
+    return (name+' '+Number(c.conc).toString()+' '+unit).trim();
+  }).filter(Boolean).join(' + ');
+}
 function addTreatmentOption(){
   const input=$('newTreatmentName'),name=input.value.trim();
-  if(!name){setMessage('Enter a treatment name first.','warn');input.focus();return;}
+  if(!name){setMessage('Enter a medicine name first.','warn');input.focus();return;}
   const existing=drugCatalog.find(x=>x.toLowerCase()===name.toLowerCase());
   if(!existing)drugCatalog.push(name);
   try{localStorage.setItem('ctb-treatment-catalog',JSON.stringify(drugCatalog));}catch(e){}
-  refreshLabelTreatmentSelect();$('labelTreatmentSelect').value=existing||name;input.value='';
-  setMessage('Treatment option added: '+(existing||name),'success');
+  refreshLabelTreatmentSelect();$('labelTreatmentSelect').value=existing||name;loadLabelTreatmentEditor(existing||name);input.value='';
+  setMessage('Drug option added: '+(existing||name),'success');
 }
 function applyLabelToSelected(){
-  const s=currentLabelSeries(),label=$('labelTreatmentSelect')?.value;
+  const s=currentLabelSeries(),label=buildLabelFromEditor();
   if(!s){setMessage('Load a plate first.','warn');return false;}
-  if(!label){setMessage('Choose or add a treatment before applying it.','warn');return false;}
+  if(!label){setMessage('Choose a drug and/or enter a component before applying it.','warn');return false;}
   const targets=s.rows.filter(r=>labelSelection.has(r.well));
   if(!targets.length){setMessage('Select at least one well in the plate grid.','warn');return false;}
+  const components=labelEditor.filter(c=>String(c.name||'').trim()).map(c=>({...c}));
   targets.forEach(r=>r.treatment=label);
-  if(!state.treatments.has(label))state.treatments.set(label,{key:label,show:label.trim().toLowerCase()!=='blank',manualLabel:'',components:parseExistingTreatment(label)});
+  if(!state.treatments.has(label))state.treatments.set(label,{key:label,show:label.trim().toLowerCase()!=='blank',manualLabel:'',components});
+  else state.treatments.get(label).components=components;
   labelSelection.clear();syncTreatments();refreshAll();
   setMessage('Applied “'+label+'” to '+targets.length+' wells.','success');return true;
 }
@@ -607,7 +672,7 @@ function renderProcessed(){
   $('processedBody').innerHTML=state.processed.slice(0,800).map(r=>'<tr>'+cols.map(c=>`<td>${esc(Number.isFinite(r[c])?fmt(r[c],c==='ctb_raw'||c==='corrected'?0:3):(r[c]??''))}</td>`).join('')+'</tr>').join('');
 }
 
-function refreshAll(){renderSeriesList();renderTreatmentTable();refreshTreatmentSelects();renderPlateSelectors();renderLabelPlateSelectors();recalculate();}
+function refreshAll(){renderSeriesList();renderTreatmentTable();refreshTreatmentSelects();renderPlateSelectors();renderLabelPlateSelectors();renderLabelComponentRows();recalculate();}
 function clearAll(){if(state.series.length&&!confirm('Clear all loaded plates and settings?'))return;labelSelection.clear();state.series=[];state.treatments.clear();state.treatmentOrder=[];state.processed=[];state.summary=[];state.outliers=[];state.checks=[];refreshAll();setMessage('All data cleared.','notice');}
 
 function csvString(rows,cols){const q=v=>{const s=String(v??'');return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;};return [cols.map(q).join(','),...rows.map(r=>cols.map(c=>q(r[c])).join(','))].join('\n');}
