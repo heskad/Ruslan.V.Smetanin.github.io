@@ -80,7 +80,7 @@ input[type=checkbox]{width:17px;height:17px}
 .label-toolbar{display:grid;grid-template-columns:minmax(170px,1fr) auto auto;gap:8px;align-items:end}
 .label-toolbar .field{min-width:180px}
 .well-grid-wrap{overflow:hidden;border:1px solid var(--line);border-radius:10px;padding:10px;background:#f8fafc}
-.well-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px;min-width:0}
+.well-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;min-width:0}
 .well-cell{touch-action:none;min-width:0;overflow:hidden;min-height:72px;padding:7px 5px;border:1px solid #cfd8e6;border-radius:8px;background:#fff;color:var(--text);cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:3px}
 .well-cell:hover{border-color:var(--primary);background:#f3f6ff}
 .well-cell.selected{border-color:var(--primary);box-shadow:0 0 0 2px rgba(53,89,224,.25);background:#edf2ff}
@@ -89,7 +89,7 @@ input[type=checkbox]{width:17px;height:17px}
 .well-cell .well-value{font-size:11px;color:var(--muted)}
 .well-cell .well-label{font-size:10px;color:#1e40af;white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .well-cell:not(.labeled) .well-label{color:var(--muted);font-style:italic}
-@media(max-width:1450px){.label-workflow{grid-template-columns:minmax(0,1fr)}.label-editor-card{position:static}.well-cell{min-height:48px;padding:5px 2px;text-align:center;align-items:center}.well-cell .well-value,.well-cell .well-label{display:none}}
+@media(max-width:1450px){.label-workflow{grid-template-columns:minmax(0,1fr)}.label-editor-card{position:static}.well-cell{min-height:58px;padding:6px 5px}}
 @media(max-width:800px){.labeling-intro{grid-template-columns:1fr}.label-toolbar{grid-template-columns:1fr}.label-toolbar .field{min-width:0}}
 
 table{border-collapse:collapse;width:100%;font-size:12px}th,td{padding:7px 8px;border-bottom:1px solid #edf0f5;text-align:left;vertical-align:middle}th{position:sticky;top:0;background:#f8fafc;z-index:2}tr:hover td{background:#fafcff}
@@ -190,7 +190,7 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
           <div class="label-workflow">
             <section class="label-card">
               <div class="label-card-head">
-                <div><div class="small">STEP 1</div><h3>Select wells</h3><div class="small">Click individual wells or drag across several.</div></div>
+                <div><div class="small">STEP 1</div><h3>Select treatment groups</h3><div class="small">32 groups · each group contains 3 replicate wells (A1–A3, A4–A6, etc.).</div></div>
                 <div class="label-selection-controls"><button onclick="selectAllLabelWells()">Select all</button><button onclick="clearLabelSelection()">Clear selection</button></div>
               </div>
               <div class="field"><label>Plate / cell line</label><select id="labelPlateSelect" onchange="labelSelection.clear();renderLabelPlate();refreshLayoutControls()"></select></div>
@@ -203,7 +203,15 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
               <label class="row"><input id="showLabelHeatmap" type="checkbox"> Show heatmap preview</label>
               <div id="labelHeatmap" class="label-heatmap" hidden></div>
               <div id="labelLegend" class="label-legend"></div>
-              <div class="small">Selected wells will receive the same treatment label. Colors show which treatment is assigned.</div>
+              <div class="small">Selecting a group selects all three underlying wells. Colors show which treatment is assigned. The Plate tab keeps the full 96-well raw heatmap.</div>
+              <details class="label-more">
+                <summary>Auto-fill labels from a list</summary>
+                <div class="layout-library">
+                  <div class="small">Enter one label per group, from A1–A3 through H10–H12. A label can be a combination, for example: Cabozantinib 2 µM + BzATP 200 µM.</div>
+                  <textarea id="autoTreatmentList" rows="5" placeholder="Medium\nBlank\nCabozantinib 2 µM\nCabozantinib 4 µM + BzATP 200 µM"></textarea>
+                  <button onclick="applyTreatmentListToGroups()">Apply list to groups</button>
+                </div>
+              </details>
               <details class="label-more">
                 <summary>Save, reuse or archive this plate layout</summary>
                 <div class="layout-library">
@@ -224,7 +232,7 @@ code{background:#f1f5f9;padding:2px 5px;border-radius:5px}.footer-note{padding:1
               <div id="labelComponentRows" class="label-components"></div>
               <details class="label-more">
                 <summary>Add a new drug to the list</summary>
-                <div class="label-new-drug"><input id="newTreatmentName" type="text" placeholder="e.g. Cabozantinib"><button onclick="addTreatmentOption()">Add drug</button></div>
+                <div class="label-new-drug"><input id="newTreatmentName" type="text" placeholder="e.g. Cabozantinib" onkeydown="if(event.key==='Enter'){event.preventDefault();addTreatmentOption()}"><button onclick="addTreatmentOption()">Add drug</button></div>
               </details>
               <div class="label-action-stack">
                 <button class="primary" onclick="applyLabelToSelected()">Assign to selected wells</button>
@@ -386,6 +394,56 @@ function findSummaryHeader(rows){
   return -1;
 }
 
+function headerKey(value){return String(value??'').trim().toLowerCase().replace(/[¡°]/g,'').replace(/[^a-z0-9]+/g,' ' ).trim();}
+function findSampleHeader(rows){
+  for(let r=0;r<rows.length;r++){
+    const headers=(rows[r]||[]).map(headerKey);
+    const wellCol=headers.findIndex(v=>v==='well'||v==='wells');
+    const valueCol=headers.findIndex(v=>/^(value|values|reading|signal|fluorescence)$/.test(v));
+    if(wellCol>=0&&valueCol>=0&&(headers.includes('sample')||headers.includes('sample name')||headers.includes('treatment')||headers.includes('drug')||headers.includes('compound')))return {r,headers,wellCol};
+  }
+  return null;
+}
+function wellsFromCell(value){
+  const tokens=String(value??'').trim().toUpperCase().split(/[;,\s]+/).filter(Boolean),out=[];
+  tokens.forEach(token=>{
+    const range=token.match(/^([A-H])(\d{1,2})[:\-]([A-H])?(\d{1,2})$/);
+    if(range&&range[1]===range[3]&&Number(range[2])<=Number(range[4]))for(let c=Number(range[2]);c<=Number(range[4]);c++)out.push(range[1]+c);
+    else if(/^[A-H](?:[1-9]|1[0-2])$/.test(token))out.push(token);
+  });
+  return [...new Set(out)];
+}
+function isAutoLabel(value){
+  const text=String(value??'').trim();
+  return !!text&&!/^\d+(?:\.\d+)?$/.test(text)&&!['sample','group','condition','treatment','drug','compound'].includes(headerKey(text));
+}
+function formatImportedTreatment(name,conc,unit){
+  const clean=String(name||'').trim();if(!clean)return '';
+  const n=Number(conc),u=String(unit||'').trim().replace(/^uM$/i,'µM').replace(/^um$/i,'µM');
+  if(Number.isFinite(n)&&!/(?:pM|nM|uM|µM|mM|ng\/mL|µg\/mL|mg\/mL|%)\b/i.test(clean))return (clean+' '+n+' '+(u||'µM')).trim();
+  return clean;
+}
+function detectAutoTreatmentLabels(rows){
+  const block=findSampleHeader(rows),found=new Map();if(!block)return found;
+  const headers=block.headers;
+  const labelPriority=['treatment','drug','compound','medicine','condition','sample name','label','sample'];
+  const labelCol=labelPriority.map(x=>headers.indexOf(x)).find(x=>x>=0)??-1;
+  const concCol=headers.findIndex(v=>/^(conc|concentration|dose)$/.test(v));
+  const unitCol=headers.findIndex(v=>v==='unit'||v==='units');
+  let currentLabel='',currentSample='';
+  for(let r=block.r+1;r<rows.length;r++){
+    const row=rows[r]||[],first=String(row[0]??'').trim();
+    if(/^~end/i.test(first))break;
+    if(labelCol>=0&&isAutoLabel(row[labelCol]))currentLabel=String(row[labelCol]).trim();
+    if(headers.includes('sample')&&String(row[headers.indexOf('sample')]??'').trim())currentSample=String(row[headers.indexOf('sample')]).trim();
+    const wells=wellsFromCell(row[block.wellCol]);if(!wells.length)continue;
+    const label=formatImportedTreatment(currentLabel,concCol>=0?row[concCol]:null,unitCol>=0?row[unitCol]:'');
+    if(!label)continue;
+    wells.forEach(well=>found.set(well,{treatment:label,auto_label:true,sample_id:currentSample||null}));
+  }
+  return found;
+}
+
 function parseSoftMaxArray(rows, filename){
   const ph=findPlateHeader(rows);
   const plate=[];
@@ -414,7 +472,12 @@ function parseSoftMaxArray(rows, filename){
       if(current)groups.set(well,{...current,softmax_value:num(row[2])});
     }
   }
-  return plate.map(x=>({...x,...(groups.get(x.well)||{}),source_file:filename}));
+  const autoLabels=detectAutoTreatmentLabels(rows);
+  return plate.map(x=>{
+    const auto=autoLabels.get(x.well)||{},summary=groups.get(x.well)||{};
+    const treatment=String(summary.treatment||'').trim()?summary.treatment:(auto.treatment||null);
+    return {...x,...auto,...summary,treatment,source_file:filename};
+  });
 }
 
 async function parseExcelFile(file){
@@ -435,7 +498,8 @@ async function handleFiles(files){
       const id=uid();
       state.series.push({id,fileName:file.name,label:inferSeriesName(file.name),color:COLORS[state.series.length%COLORS.length],include:true,rows:rows.map(r=>({...r,sourceId:id}))});
       syncTreatments();
-      setMessage(`Loaded ${file.name}: ${rows.filter(r=>Number.isFinite(r.ctb_raw)).length} wells, ${new Set(rows.map(r=>r.treatment).filter(Boolean)).size} treatment groups.`,'success');
+      const autoWells=rows.filter(r=>r.auto_label).length,autoGroups=new Set(rows.filter(r=>r.auto_label).map(r=>r.treatment)).size;
+      setMessage(`Loaded ${file.name}: ${rows.filter(r=>Number.isFinite(r.ctb_raw)).length} wells, ${new Set(rows.map(r=>r.treatment).filter(Boolean)).size} treatment groups.`+(autoWells?` Auto-labeled ${autoWells} wells (${autoGroups} labels) from the workbook.`:''),'success');
     }catch(e){console.error(e);setMessage(`Could not read ${file.name}: ${e.message}`,'error');}
   }
   refreshAll();
@@ -447,7 +511,8 @@ function syncTreatments(){
   const found=[];
   state.series.forEach(s=>s.rows.forEach(r=>{if(r.treatment!=null&&String(r.treatment).trim()&&!found.includes(String(r.treatment)))found.push(String(r.treatment));}));
   for(const key of found){
-    if(!state.treatments.has(key))state.treatments.set(key,{key,show:key.trim().toLowerCase()!=='blank',manualLabel:'',components:parseExistingTreatment(key)});
+    const parsed=parseExistingTreatment(key);parsed.forEach(component=>{const name=String(component.name||'').trim();if(name&&!drugCatalog.some(item=>item.toLowerCase()===name.toLowerCase()))drugCatalog.push(name);});
+    if(!state.treatments.has(key))state.treatments.set(key,{key,show:!isBlankTreatment(key),manualLabel:'',components:parsed});
   }
   for(const key of [...state.treatments.keys()])if(!found.includes(key))state.treatments.delete(key);
   state.treatmentOrder=state.treatmentOrder.filter(k=>found.includes(k));
@@ -492,23 +557,39 @@ function currentLabelSeries(){
   const id=$('labelPlateSelect')?.value;
   return state.series.find(s=>s.id===id)||state.series[0]||null;
 }
+function getPlateGroups(series){
+  if(!series)return [];
+  const byWell=new Map(series.rows.map(r=>[r.well,r]));
+  return 'ABCDEFGH'.split('').flatMap(letter=>[1,4,7,10].map(start=>{
+    const wells=[start,start+1,start+2].map(column=>letter+column);
+    return {key:letter+start,wells,rows:wells.map(well=>byWell.get(well)).filter(Boolean)};
+  }));
+}
+function groupWells(key){
+  const match=String(key||'').match(/^([A-H])(1|4|7|10)$/);if(!match)return [];
+  const start=Number(match[2]);return [start,start+1,start+2].map(column=>match[1]+column);
+}
+function groupTreatment(group){
+  const labels=[...new Set(group.rows.map(r=>String(r.treatment||'').trim()).filter(Boolean))];
+  return labels.length===1?labels[0]:labels.length?'Mixed labels':'Not labeled';
+}
 function renderLabelPlate(){
   const host=$('labelPlateGrid'),status=$('labelSelectionStatus');
   if(!host||!status)return;
   const s=currentLabelSeries();
   if(!s){host.innerHTML='<div class="small">No plates loaded yet.</div>';status.textContent='Load a plate to begin labeling.';status.className='notice';renderLabelLegend();renderLabelHeatmap();return;}
   const cells=[];
-  for(const r of s.rows){
-    const selected=labelSelection.has(r.well);
-    const labeled=r.treatment!=null&&String(r.treatment).trim()!=='';
-    const shownLabel=labeled?treatmentLabel(r.treatment):'Not labeled';
-    const color=labeled?treatmentColor(r.treatment):'';
-    cells.push('<button type="button" class="well-cell'+(selected?' selected':'')+(labeled?' labeled':'')+'"'+(color?' style="--well-color:'+color+'"':'')+' data-well="'+esc(r.well)+'" aria-label="'+esc(r.well+' '+shownLabel)+'" title="'+esc(r.well+' · '+shownLabel+' · CTB: '+(fmt(r.ctb_raw,0)||'—'))+'"><span class="well-id">'+esc(r.well)+'</span><span class="well-value">CTB: '+esc(fmt(r.ctb_raw,0)||'—')+'</span><span class="well-label">'+esc(shownLabel)+'</span></button>');
+  for(const group of getPlateGroups(s)){
+    const labels=[...new Set(group.rows.map(r=>String(r.treatment||'').trim()).filter(Boolean))],labeled=labels.length>0,uniform=labels.length===1;
+    const shownLabel=groupTreatment(group),color=uniform?treatmentColor(labels[0]):'';
+    const values=group.rows.map(r=>r.ctb_raw).filter(Number.isFinite),groupMean=mean(values);
+    const selected=group.wells.every(well=>labelSelection.has(well));
+    cells.push('<button type="button" class="well-cell'+(selected?' selected':'')+(labeled?' labeled':'')+'"'+(color?' style="--well-color:'+color+'"':'')+' data-group="'+esc(group.key)+'" aria-label="'+esc(group.key+'–'+(Number(group.key.slice(1))+2)+' '+shownLabel)+'" title="'+esc(group.key+'–'+(Number(group.key.slice(1))+2)+' · '+shownLabel+' · 3 wells · mean CTB: '+(fmt(groupMean,0)||'—'))+'"><span class="well-id">'+esc(group.key+'–'+(Number(group.key.slice(1))+2))+'</span><span class="well-value">n=3 · CTB: '+esc(fmt(groupMean,0)||'—')+'</span><span class="well-label">'+esc(uniform?treatmentLabel(labels[0]):shownLabel)+'</span></button>');
   }
   host.innerHTML=cells.join('');
   host.querySelectorAll('.well-cell').forEach(cell=>{
-    cell.addEventListener('pointerdown',event=>beginWellSelection(event,cell.dataset.well));
-    cell.addEventListener('pointerenter',()=>continueWellSelection(cell.dataset.well));
+    cell.addEventListener('pointerdown',event=>beginWellSelection(event,cell.dataset.group));
+    cell.addEventListener('pointerenter',()=>continueWellSelection(cell.dataset.group));
   });
   updateLabelSelectionView();renderLabelLegend();renderLabelHeatmap();
 }
@@ -519,7 +600,7 @@ function treatmentColor(key){
 }
 function renderLabelLegend(){
   const host=$('labelLegend');if(!host)return;
-  const keys=state.treatmentOrder.filter(k=>k.trim().toLowerCase()!=='blank');
+  const keys=state.treatmentOrder.filter(k=>!isBlankTreatment(k));
   host.innerHTML=keys.map(k=>'<span class="label-legend-item" style="--well-color:'+treatmentColor(k)+'"><span class="label-legend-swatch"></span>'+esc(treatmentLabel(k))+'</span>').join('');
 }
 function renderLabelHeatmap(){
@@ -544,16 +625,16 @@ function toggleLabelHeatmap(){renderLabelHeatmap();persistWorkspace();}
 function updateLabelSelectionView(){
   const host=$('labelPlateGrid'),status=$('labelSelectionStatus'),s=currentLabelSeries();
   if(!host||!status||!s)return;
-  host.querySelectorAll('.well-cell').forEach(cell=>cell.classList.toggle('selected',labelSelection.has(cell.dataset.well)));
-  const labeledCount=s.rows.filter(r=>r.treatment!=null&&String(r.treatment).trim()!=='').length;
-  status.textContent=labelSelection.size+' selected · '+labeledCount+' labeled wells · '+s.label;
+  const groups=getPlateGroups(s),selectedCount=groups.filter(group=>group.wells.every(well=>labelSelection.has(well))).length,labeledCount=groups.filter(group=>group.rows.some(r=>String(r.treatment||'').trim())).length;
+  host.querySelectorAll('.well-cell').forEach(cell=>cell.classList.toggle('selected',groupWells(cell.dataset.group).every(well=>labelSelection.has(well))));
+  status.textContent=selectedCount+' groups selected · '+labeledCount+'/32 groups labeled · '+s.label;
   status.className=labelSelection.size?'notice success':'notice';
 }
 function beginWellSelection(event,well){
   if(event.button!==undefined&&event.button!==0)return;
   event.preventDefault();
   labelDrag.active=true;
-  labelDrag.mode=labelSelection.has(well)&&!event.shiftKey?'remove':'add';
+  labelDrag.mode=groupWells(well).every(item=>labelSelection.has(item))&&!event.shiftKey?'remove':'add';
   applyWellSelection(well);
 }
 function continueWellSelection(well){
@@ -561,7 +642,7 @@ function continueWellSelection(well){
 }
 function endWellSelection(){labelDrag.active=false;}
 function applyWellSelection(well){
-  if(labelDrag.mode==='remove')labelSelection.delete(well);else labelSelection.add(well);
+  const wells=groupWells(well);if(labelDrag.mode==='remove')wells.forEach(item=>labelSelection.delete(item));else wells.forEach(item=>labelSelection.add(item));
   updateLabelSelectionView();
 }
 function selectAllLabelWells(){
@@ -569,6 +650,14 @@ function selectAllLabelWells(){
   s.rows.forEach(r=>labelSelection.add(r.well));updateLabelSelectionView();
 }
 function clearLabelSelection(){labelSelection.clear();updateLabelSelectionView();}
+function applyTreatmentListToGroups(){
+  const s=currentLabelSeries();if(!s){setMessage('Load a plate first.','warn');return;}
+  const labels=String($('autoTreatmentList')?.value||'').split(/\r?\n/).map(line=>line.trim().replace(/^\d+[.)]\s*/,'' )).filter(Boolean);
+  if(!labels.length){setMessage('Enter one treatment label per group first.','warn');return;}
+  if(labels.length>32){setMessage('The list contains '+labels.length+' labels. The plate has 32 groups; remove the extra lines.','warn');return;}
+  if(s.rows.some(r=>String(r.treatment||'').trim())&&!confirm('Replace the treatment labels on '+s.label+' with this '+labels.length+'-line list?'))return;
+  const groups=getPlateGroups(s);groups.forEach((group,index)=>group.rows.forEach(row=>row.treatment=labels[index]||null));labelSelection.clear();syncTreatments();refreshAll();setMessage('Applied '+labels.length+' treatment labels to '+labels.length+' groups.','success');
+}
 function componentOptions(selected){
   const keys=[...drugCatalog,...state.treatmentOrder];
   if(selected&&!keys.some(k=>k.toLowerCase()===String(selected).toLowerCase()))keys.push(selected);
